@@ -79,18 +79,18 @@ export default function AnalysesPage() {
   );
 
   return (
-    <div className="space-y-8">
+    <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Analyses</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-xl font-medium text-foreground">Analyses</h1>
+          <p className="text-[14px] text-muted-foreground mt-1">
             Explore insights generated from your data.
           </p>
         </div>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="shadow-lg shadow-primary/20">
+            <Button data-testid="button-new-analysis">
               <Plus className="w-4 h-4 mr-2" />
               New Analysis
             </Button>
@@ -140,50 +140,47 @@ export default function AnalysesPage() {
       </div>
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-10 h-10 animate-spin text-primary" />
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
         </div>
       ) : filteredAnalyses?.length === 0 ? (
-        <div className="text-center py-20 border-2 border-dashed rounded-xl bg-secondary/5">
-          <BarChart3 className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-          <h3 className="text-lg font-medium">No analyses found</h3>
-          <p className="text-muted-foreground">
+        <div className="text-center py-16 border border-dashed rounded-lg">
+          <BarChart3 className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
+          <p className="text-[14px] font-medium text-foreground">No analyses found</p>
+          <p className="text-[13px] text-muted-foreground mt-1">
             {searchTerm ? "Try a different search term" : "Create your first analysis to get started"}
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredAnalyses?.map((analysis: any) => (
             <Link key={analysis.id} href={`/analyses/${analysis.id}`}>
-              <div className="group relative bg-card rounded-xl border p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer h-full flex flex-col">
-                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div 
+                className="group relative bg-card rounded-lg border p-5 hover:bg-accent/50 transition-colors cursor-pointer h-full flex flex-col"
+                data-testid={`analysis-card-${analysis.id}`}
+              >
+                <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
                     onClick={(e) => handleDelete(e, analysis.id)}
+                    data-testid={`button-delete-${analysis.id}`}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
-                
-                <div className="mb-4">
-                  <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 dark:bg-blue-900/30 dark:text-blue-400">
-                    AI Generated
-                  </span>
-                </div>
 
-                <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
-                  {analysis.title}
+                <h3 className="text-[15px] font-medium text-foreground mb-1.5 pr-8">
+                  {analysis.title.replace("Analysis: ", "")}
                 </h3>
-                <p className="text-muted-foreground text-sm line-clamp-3 mb-4 flex-1">
+                <p className="text-[13px] text-muted-foreground line-clamp-2 mb-4 flex-1">
                   {analysis.summary}
                 </p>
 
-                <div className="flex items-center justify-between text-xs text-muted-foreground pt-4 border-t mt-auto">
-                  <span>{new Date(analysis.createdAt).toLocaleDateString()}</span>
-                  <span className="flex items-center gap-1 group-hover:translate-x-1 transition-transform text-primary font-medium">
-                    View Report <ArrowUpRight className="w-3 h-3" />
+                <div className="flex items-center justify-between text-[12px] text-muted-foreground pt-3 border-t">
+                  <span>{new Date(analysis.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                  <span className="flex items-center gap-1">
+                    {analysis.charts?.length || 0} charts
                   </span>
                 </div>
               </div>

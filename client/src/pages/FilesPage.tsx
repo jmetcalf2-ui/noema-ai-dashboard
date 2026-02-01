@@ -24,20 +24,20 @@ export default function FilesPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Data Files</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your uploaded datasets and view their status.
+          <h1 className="text-xl font-medium text-foreground">Files</h1>
+          <p className="text-[14px] text-muted-foreground mt-1">
+            Manage your uploaded datasets.
           </p>
         </div>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Upload New File</CardTitle>
-          <CardDescription>Supported formats: CSV, Excel, JSON</CardDescription>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-[15px] font-medium">Upload New File</CardTitle>
+          <CardDescription className="text-[13px]">Supported formats: CSV, Excel, JSON</CardDescription>
         </CardHeader>
         <CardContent>
           <FileUpload onUploadComplete={() => refetch()} />
@@ -45,53 +45,53 @@ export default function FilesPage() {
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Your Files</CardTitle>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-[15px] font-medium">Your Files</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
              <div className="flex items-center justify-center py-12">
-               <Loader2 className="w-8 h-8 animate-spin text-primary" />
+               <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
              </div>
           ) : files?.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <FileText className="w-12 h-12 mx-auto mb-3 opacity-20" />
-              <p>No files uploaded yet.</p>
+            <div className="text-center py-12">
+              <FileText className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" />
+              <p className="text-[14px] text-muted-foreground">No files uploaded yet.</p>
             </div>
           ) : (
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Date Uploaded</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Name</TableHead>
+                    <TableHead className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Type</TableHead>
+                    <TableHead className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Uploaded</TableHead>
+                    <TableHead className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {files?.map((file: any) => (
-                    <TableRow key={file.id}>
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-blue-500" />
+                    <TableRow key={file.id} data-testid={`file-row-${file.id}`}>
+                      <TableCell className="text-[14px] font-medium">
+                        <div className="flex items-center gap-2.5">
+                          <FileText className="w-4 h-4 text-muted-foreground" />
                           {file.fileName}
                         </div>
                       </TableCell>
-                      <TableCell className="text-muted-foreground uppercase text-xs">
+                      <TableCell className="text-[13px] text-muted-foreground uppercase">
                         {file.fileType.split('/')[1] || 'Unknown'}
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {new Date(file.createdAt).toLocaleDateString()}
+                      <TableCell className="text-[13px] text-muted-foreground">
+                        {new Date(file.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button 
                           variant="ghost" 
                           size="sm"
                           onClick={() => handleDownload(file.fileUrl, file.fileName)}
+                          data-testid={`button-download-${file.id}`}
                         >
-                          <Download className="w-4 h-4 mr-2" />
-                          Download
+                          <Download className="w-4 h-4" />
                         </Button>
                       </TableCell>
                     </TableRow>
