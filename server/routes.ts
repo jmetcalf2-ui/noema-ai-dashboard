@@ -240,6 +240,193 @@ Help the user understand their data better. Be concise, specific, and provide ac
     }
   });
 
+  // --- Projects API ---
+
+  app.post(api.projects.create.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    
+    try {
+      const input = api.projects.create.input.parse(req.body);
+      const userId = (req.user as any).claims.sub;
+      
+      const project = await storage.createProject({
+        ...input,
+        userId,
+      });
+      
+      res.status(201).json(project);
+    } catch (e) {
+      if (e instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid input", errors: e.errors });
+      } else {
+        console.error("Create project error:", e);
+        res.status(500).json({ message: "Failed to create project" });
+      }
+    }
+  });
+
+  app.get(api.projects.list.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = (req.user as any).claims.sub;
+    const projects = await storage.getUserProjects(userId);
+    res.json(projects);
+  });
+
+  app.get(api.projects.get.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const id = parseInt(String(req.params.id));
+    const project = await storage.getProject(id);
+    
+    if (!project) return res.status(404).json({ message: "Project not found" });
+    if (project.userId !== (req.user as any).claims.sub) return res.status(403).json({ message: "Forbidden" });
+    
+    res.json(project);
+  });
+
+  app.delete(api.projects.delete.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const id = parseInt(String(req.params.id));
+    const project = await storage.getProject(id);
+
+    if (!project) return res.status(404).json({ message: "Project not found" });
+    if (project.userId !== (req.user as any).claims.sub) return res.status(403).json({ message: "Forbidden" });
+
+    await storage.deleteProject(id);
+    res.sendStatus(204);
+  });
+
+  app.post(api.projects.addAnalysis.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    
+    try {
+      const projectId = parseInt(String(req.params.id));
+      const { analysisId } = api.projects.addAnalysis.input.parse(req.body);
+      const userId = (req.user as any).claims.sub;
+
+      const project = await storage.getProject(projectId);
+      if (!project) return res.status(404).json({ message: "Project not found" });
+      if (project.userId !== userId) return res.status(403).json({ message: "Forbidden" });
+
+      const analysis = await storage.getAnalysis(analysisId);
+      if (!analysis) return res.status(404).json({ message: "Analysis not found" });
+      if (analysis.userId !== userId) return res.status(403).json({ message: "Forbidden" });
+
+      await storage.addAnalysisToProject(projectId, analysisId);
+      res.status(201).json({ message: "Analysis added to project" });
+    } catch (e) {
+      if (e instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid input", errors: e.errors });
+      } else {
+        console.error("Add analysis to project error:", e);
+        res.status(500).json({ message: "Failed to add analysis" });
+      }
+    }
+  });
+
+  app.delete(api.projects.removeAnalysis.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    
+    const projectId = parseInt(String(req.params.id));
+    const analysisId = parseInt(String(req.params.analysisId));
+    const userId = (req.user as any).claims.sub;
+
+    const project = await storage.getProject(projectId);
+    if (!project) return res.status(404).json({ message: "Project not found" });
+    if (project.userId !== userId) return res.status(403).json({ message: "Forbidden" });
+
+    await storage.removeAnalysisFromProject(projectId, analysisId);
+    res.sendStatus(204);
+  });
+
+  app.get(api.projects.getAnalyses.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    
+    const projectId = parseInt(String(req.params.id));
+    const userId = (req.user as any).claims.sub;
+
+    const project = await storage.getProject(projectId);
+    if (!project) return res.status(404).json({ message: "Project not found" });
+    if (project.userId !== userId) return res.status(403).json({ message: "Forbidden" });
+
+    const analyses = await storage.getProjectAnalyses(projectId);
+    res.json(analyses);
+  });
+
+  // Generate AI insights across all analyses in a project
+  app.post(api.projects.generateInsights.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    
+    try {
+      const projectId = parseInt(String(req.params.id));
+      const userId = (req.user as any).claims.sub;
+
+      const project = await storage.getProject(projectId);
+      if (!project) return res.status(404).json({ message: "Project not found" });
+      if (project.userId !== userId) return res.status(403).json({ message: "Forbidden" });
+
+      const analyses = await storage.getProjectAnalyses(projectId);
+      
+      if (analyses.length === 0) {
+        return res.status(400).json({ message: "Project has no analyses to generate insights from" });
+      }
+
+      // Compile all analysis data for AI
+      const analysisData = analyses.map(a => ({
+        title: a.title,
+        summary: a.summary,
+        insights: a.insights,
+        charts: a.charts?.map((c: any) => ({ type: c.type, title: c.title })),
+      }));
+
+      const prompt = `
+You are a senior data analyst. Analyze multiple datasets together and find cross-cutting insights.
+
+Project Name: ${project.name}
+Project Description: ${project.description || 'No description provided'}
+
+Here are the individual analyses:
+${JSON.stringify(analysisData, null, 2)}
+
+Your task:
+1. Find patterns and connections ACROSS these different analyses
+2. Identify actionable recommendations based on the combined data
+3. Highlight any contradictions or interesting comparisons between datasets
+
+Return ONLY valid JSON with this exact structure:
+{
+  "summary": "2-3 sentence executive summary synthesizing all the data together",
+  "insights": [
+    "Cross-cutting insight 1 that connects multiple analyses",
+    "Cross-cutting insight 2",
+    "Cross-cutting insight 3",
+    "Actionable recommendation based on combined data"
+  ]
+}
+
+Focus on insights that would NOT be visible from looking at individual analyses alone.
+      `;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{ role: "user", content: prompt }],
+        response_format: { type: "json_object" },
+      });
+
+      const rawContent = response.choices[0].message.content || "{}";
+      const result = JSON.parse(rawContent);
+
+      const updatedProject = await storage.updateProject(projectId, {
+        summary: result.summary || "Insights generated successfully.",
+        insights: result.insights || [],
+      });
+
+      res.json(updatedProject);
+    } catch (e) {
+      console.error("Generate project insights error:", e);
+      res.status(500).json({ message: "Failed to generate insights" });
+    }
+  });
+
   // --- Get file content for analysis ---
   app.get("/api/analyses/:id/data", async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });

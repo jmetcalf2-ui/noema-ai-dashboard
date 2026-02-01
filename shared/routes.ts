@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { insertDataFileSchema, insertAnalysisSchema, dataFiles, analyses } from './schema';
+import { insertDataFileSchema, insertAnalysisSchema, insertProjectSchema, dataFiles, analyses, projects } from './schema';
 
 export const errorSchemas = {
   validation: z.object({
@@ -74,6 +74,76 @@ export const api = {
       path: '/api/analyses/:id',
       responses: {
         204: z.void(),
+        404: errorSchemas.notFound,
+      },
+    },
+  },
+  projects: {
+    create: {
+      method: 'POST' as const,
+      path: '/api/projects',
+      input: insertProjectSchema,
+      responses: {
+        201: z.custom<typeof projects.$inferSelect>(),
+        400: errorSchemas.validation,
+      },
+    },
+    list: {
+      method: 'GET' as const,
+      path: '/api/projects',
+      responses: {
+        200: z.array(z.custom<typeof projects.$inferSelect>()),
+      },
+    },
+    get: {
+      method: 'GET' as const,
+      path: '/api/projects/:id',
+      responses: {
+        200: z.custom<typeof projects.$inferSelect>(),
+        404: errorSchemas.notFound,
+      },
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/projects/:id',
+      responses: {
+        204: z.void(),
+        404: errorSchemas.notFound,
+      },
+    },
+    addAnalysis: {
+      method: 'POST' as const,
+      path: '/api/projects/:id/analyses',
+      input: z.object({
+        analysisId: z.number(),
+      }),
+      responses: {
+        201: z.object({ message: z.string() }),
+        400: errorSchemas.validation,
+        404: errorSchemas.notFound,
+      },
+    },
+    removeAnalysis: {
+      method: 'DELETE' as const,
+      path: '/api/projects/:id/analyses/:analysisId',
+      responses: {
+        204: z.void(),
+        404: errorSchemas.notFound,
+      },
+    },
+    getAnalyses: {
+      method: 'GET' as const,
+      path: '/api/projects/:id/analyses',
+      responses: {
+        200: z.array(z.custom<typeof analyses.$inferSelect>()),
+        404: errorSchemas.notFound,
+      },
+    },
+    generateInsights: {
+      method: 'POST' as const,
+      path: '/api/projects/:id/generate-insights',
+      responses: {
+        200: z.custom<typeof projects.$inferSelect>(),
         404: errorSchemas.notFound,
       },
     },
