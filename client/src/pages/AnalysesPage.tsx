@@ -79,7 +79,7 @@ export default function AnalysesPage() {
   );
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
+    <div className="max-w-5xl mx-auto px-8 py-10 space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-medium text-foreground">Analyses</h1>

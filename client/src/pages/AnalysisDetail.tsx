@@ -100,7 +100,7 @@ export default function AnalysisDetail() {
 
   return (
     <div className="min-h-screen pb-16">
-      <div className="max-w-6xl mx-auto px-6">
+      <div className="max-w-5xl mx-auto px-8">
         <div className="py-4">
           <Link 
             href="/analyses" 
