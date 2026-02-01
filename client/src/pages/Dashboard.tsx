@@ -1,192 +1,58 @@
-import { useEffect, useRef, useState } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { FileUpload } from "@/components/FileUpload";
 import { useAnalyses } from "@/hooks/use-analyses";
 import { Link } from "wouter";
-
-gsap.registerPlugin(ScrollTrigger);
-
-const dashboardTabs = [
-  {
-    id: 1,
-    title: "Analytics",
-    src: "https://ui.shadcn.com/_next/image?url=%2Fr%2Fstyles%2Fnew-york-v4%2Fdashboard-01-light.png&w=3840&q=75",
-    alt: "Dashboard Analytics Overview",
-  },
-  {
-    id: 2,
-    title: "Users Management",
-    src: "https://ui.shadcn.com/_next/image?url=%2Fr%2Fstyles%2Fnew-york-v4%2Fdashboard-01-light.png&w=3840&q=75",
-    alt: "Dashboard User Management",
-  },
-  {
-    id: 3,
-    title: "Insights & Reports",
-    src: "https://ui.shadcn.com/_next/image?url=%2Fr%2Fstyles%2Fnew-york-v4%2Fdashboard-01-light.png&w=3840&q=75",
-    alt: "Dashboard Reports",
-  },
-  {
-    id: 4,
-    title: "Activity",
-    src: "https://ui.shadcn.com/_next/image?url=%2Fr%2Fstyles%2Fnew-york-v4%2Fdashboard-01-light.png&w=3840&q=75",
-    alt: "Dashboard Activity",
-  },
-  {
-    id: 5,
-    title: "Trends",
-    src: "https://ui.shadcn.com/_next/image?url=%2Fr%2Fstyles%2Fnew-york-v4%2Fdashboard-01-light.png&w=3840&q=75",
-    alt: "Dashboard Trends",
-  },
-];
+import { ArrowRight, Loader2 } from "lucide-react";
 
 export default function Dashboard() {
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const [currentSlide, setCurrentSlide] = useState<number>(0);
-  const headingRef = useRef<HTMLHeadingElement>(null);
-  const textRef = useRef<HTMLParagraphElement>(null);
-  const ctaRef = useRef<HTMLDivElement>(null);
-  const sliderRef = useRef<HTMLDivElement>(null);
-  const { data: analyses } = useAnalyses();
-
-  useEffect(() => {
-    const tl = gsap.timeline();
-
-    tl.fromTo(
-      headingRef.current,
-      { y: 50, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }
-    )
-      .fromTo(
-        textRef.current,
-        { y: 30, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" },
-        "-=0.4"
-      )
-      .fromTo(
-        ctaRef.current,
-        { y: 30, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" },
-        "-=0.4"
-      )
-      .fromTo(
-        sliderRef.current,
-        { y: 30, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" },
-        "-=0.2"
-      );
-
-    const slideInterval = setInterval(() => {
-      nextSlide();
-    }, 5000);
-
-    return () => {
-      tl.kill();
-      clearInterval(slideInterval);
-      ScrollTrigger.getAll().forEach((t) => t.kill());
-    };
-  }, []);
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) =>
-      prev === dashboardTabs.length - 1 ? 0 : prev + 1
-    );
-  };
-
-  const goToSlide = (index: number) => {
-    setCurrentSlide(index);
-  };
+  const { data: analyses, isLoading } = useAnalyses();
 
   return (
-    <div ref={sectionRef} className="py-8 md:py-16">
-      <div className="mx-auto">
-        <div>
-          <div className="container mx-auto">
-            <h1
-              ref={headingRef}
-              className="text-4xl text-left font-bold tracking-tight sm:text-5xl"
-            >
-              Not everything powerful <br /> has to look complicated
-            </h1>
-            <p
-              ref={textRef}
-              className="mt-4 text-lg text-muted-foreground text-left"
-            >
-              Explore the key features that make our platform a game-changer for
-              businesses of all sizes.
-            </p>
+    <div className="min-h-[80vh] flex flex-col items-center justify-center px-4">
+      <div className="w-full max-w-2xl space-y-8">
+        <div className="text-center space-y-2">
+          <h1 className="text-2xl font-medium tracking-tight">
+            What would you like to analyze?
+          </h1>
+          <p className="text-muted-foreground">
+            Upload a CSV or Excel file to get started
+          </p>
+        </div>
+
+        <FileUpload />
+
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
           </div>
-
-          <div ref={ctaRef} className="container mx-auto mt-8 mb-8">
-            <FileUpload />
-            {analyses && analyses.length > 0 && (
-              <div className="mt-6 text-center">
-                <Link
-                  href="/analyses"
-                  className="text-sm text-primary hover:underline"
-                  data-testid="link-view-analyses"
-                >
-                  View your {analyses.length} existing{" "}
-                  {analyses.length === 1 ? "analysis" : "analyses"} →
-                </Link>
-              </div>
-            )}
-          </div>
-
-          <div ref={sliderRef} className="relative h-[100vh] overflow-hidden">
-            <div className="absolute inset-0 flex items-center justify-center">
-              {dashboardTabs.map((tab, index) => {
-                const position = index - currentSlide;
-                const isActive = position === 0;
-                const zIndex = isActive ? 30 : 20 - Math.abs(position);
-                const scale = isActive ? 1 : 1 - 0.1;
-                const translateX = position * 100;
-
-                return (
+        ) : analyses && analyses.length > 0 ? (
+          <div className="pt-8 border-t">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm text-muted-foreground">Recent analyses</p>
+              <Link
+                href="/analyses"
+                className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
+                data-testid="link-view-all"
+              >
+                View all <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+            <div className="space-y-2">
+              {analyses.slice(0, 5).map((analysis: any) => (
+                <Link key={analysis.id} href={`/analyses/${analysis.id}`}>
                   <div
-                    key={tab.id}
-                    className={`absolute transition-all duration-500 ease-in-out rounded-2xl border-4 ${
-                      isActive ? "border-gray-200" : "border-gray-100"
-                    } ${isActive ? "shadow-2xl" : "shadow-md"}`}
-                    style={{
-                      transform: `translateX(${translateX}%) scale(${scale})`,
-                      zIndex,
-                    }}
+                    className="p-3 rounded-lg hover:bg-secondary/50 transition-colors cursor-pointer"
+                    data-testid={`analysis-item-${analysis.id}`}
                   >
-                    <div className="relative aspect-[16/9] w-[70vw] max-w-full rounded-2xl overflow-hidden">
-                      <img
-                        src={tab.src}
-                        alt={tab.alt}
-                        className="w-full h-full object-cover"
-                        loading={tab.id === 1 ? "eager" : "lazy"}
-                      />
-                      {isActive && (
-                        <div className="absolute inset-0 bg-black/5 rounded-2xl"></div>
-                      )}
-                    </div>
+                    <p className="font-medium text-sm">{analysis.title}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {analysis.summary}
+                    </p>
                   </div>
-                );
-              })}
+                </Link>
+              ))}
             </div>
           </div>
-
-          <div className="flex justify-center gap-8 flex-wrap">
-            {dashboardTabs.map((tab, index) => (
-              <button
-                key={tab.id}
-                onClick={() => goToSlide(index)}
-                data-testid={`button-tab-${tab.id}`}
-                className={`p-2 text-sm font-medium transition-all ${
-                  currentSlide === index
-                    ? "text-gray-600 dark:text-gray-200"
-                    : "text-gray-400 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-400"
-                }`}
-              >
-                {tab.title}
-              </button>
-            ))}
-          </div>
-        </div>
+        ) : null}
       </div>
     </div>
   );
