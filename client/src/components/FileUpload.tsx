@@ -151,7 +151,7 @@ export function FileUpload({ onUploadComplete }: { onUploadComplete?: () => void
     <div className="w-full">
       <label
         className={cn(
-          "flex flex-col items-center justify-center py-14 px-8 border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200",
+          "flex flex-col items-center justify-center py-8 px-6 border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200",
           dragActive
             ? "border-foreground/40 bg-accent/60 scale-[1.01]"
             : "border-border hover:border-muted-foreground/40 hover:bg-accent/40"
