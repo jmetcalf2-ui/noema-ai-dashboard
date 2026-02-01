@@ -87,7 +87,7 @@ export function FileUpload({ onUploadComplete }: { onUploadComplete?: () => void
       <motion.div 
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md mx-auto space-y-3"
+        className="w-full space-y-3"
       >
         <div className="flex items-center justify-between p-4 border rounded-xl bg-card">
           <div className="flex items-center gap-3 overflow-hidden">
@@ -148,7 +148,7 @@ export function FileUpload({ onUploadComplete }: { onUploadComplete?: () => void
   }
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className="w-full">
       <label
         className={cn(
           "flex flex-col items-center justify-center py-14 px-8 border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200",
