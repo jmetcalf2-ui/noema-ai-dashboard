@@ -86,6 +86,7 @@ export const insertAnalysisSchema = createInsertSchema(analyses).omit({
 
 export const insertProjectSchema = createInsertSchema(projects).omit({ 
   id: true, 
+  userId: true,
   createdAt: true,
   updatedAt: true,
   summary: true,
