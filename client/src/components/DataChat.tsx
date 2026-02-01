@@ -1,8 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Send, Sparkles, Loader2, User } from "lucide-react";
+import { Sparkles, Loader2, User, ArrowUp, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -22,12 +21,22 @@ export function DataChat({ analysisId, dataContext, className }: DataChatProps) 
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  useLayoutEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = "auto";
+      const newHeight = Math.min(textarea.scrollHeight, 200);
+      textarea.style.height = `${newHeight}px`;
+    }
+  }, [input]);
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -111,6 +120,8 @@ export function DataChat({ analysisId, dataContext, className }: DataChatProps) 
     "What's the most significant insight?",
   ];
 
+  const hasValue = input.trim().length > 0;
+
   return (
     <Card className={cn("flex flex-col h-[480px] overflow-hidden", className)}>
       <div className="flex items-center gap-2.5 px-5 py-4 border-b">
@@ -131,13 +142,6 @@ export function DataChat({ analysisId, dataContext, className }: DataChatProps) 
               animate={{ opacity: 1 }}
               className="h-full flex flex-col items-center justify-center text-center px-4"
             >
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500/10 to-purple-600/10 flex items-center justify-center mb-4">
-                <Sparkles className="w-6 h-6 text-violet-500" />
-              </div>
-              <p className="text-[15px] font-medium text-foreground mb-1">Ask about your data</p>
-              <p className="text-[13px] text-muted-foreground mb-5 max-w-[240px]">
-                Get insights, find patterns, or explore specific aspects of your analysis.
-              </p>
               <div className="flex flex-wrap gap-2 justify-center">
                 {suggestions.map((s, i) => (
                   <Button
@@ -196,30 +200,51 @@ export function DataChat({ analysisId, dataContext, className }: DataChatProps) 
         </AnimatePresence>
       </div>
 
-      <div className="p-4 border-t bg-secondary/30">
-        <div className="flex gap-2.5 items-end">
-          <Textarea
+      {/* ChatGPT-style prompt box */}
+      <div className="p-4">
+        <div className="flex flex-col rounded-[28px] p-2 shadow-sm transition-colors bg-secondary/50 dark:bg-secondary/30 border">
+          <textarea
+            ref={textareaRef}
+            rows={1}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask a question..."
+            placeholder="Message..."
             disabled={isLoading}
-            className="min-h-[44px] max-h-[120px] resize-none text-[14px] bg-background border-border/60 rounded-xl"
-            rows={1}
+            className="w-full resize-none border-0 bg-transparent px-3 py-2 text-[14px] text-foreground placeholder:text-muted-foreground focus:ring-0 focus-visible:outline-none min-h-[40px]"
             data-testid="input-chat"
           />
-          <Button
-            size="icon"
-            onClick={sendMessage}
-            disabled={!input.trim() || isLoading}
-            data-testid="button-send-chat"
-          >
-            {isLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Send className="w-4 h-4" />
-            )}
-          </Button>
+          
+          <div className="flex items-center justify-between px-1 pt-1">
+            <button
+              type="button"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none"
+              data-testid="button-attach"
+            >
+              <Plus className="h-5 w-5" />
+              <span className="sr-only">Attach file</span>
+            </button>
+            
+            <button
+              type="button"
+              onClick={sendMessage}
+              disabled={!hasValue || isLoading}
+              className={cn(
+                "flex h-8 w-8 items-center justify-center rounded-full transition-all focus-visible:outline-none",
+                hasValue && !isLoading
+                  ? "bg-foreground text-background hover:opacity-80"
+                  : "bg-muted text-muted-foreground cursor-not-allowed"
+              )}
+              data-testid="button-send-chat"
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <ArrowUp className="h-4 w-4" strokeWidth={2.5} />
+              )}
+              <span className="sr-only">Send message</span>
+            </button>
+          </div>
         </div>
       </div>
     </Card>
