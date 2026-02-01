@@ -89,16 +89,15 @@ export function FileUpload({ onUploadComplete }: { onUploadComplete?: () => void
         onDragOver={handleDrag}
         onDrop={handleDrop}
       >
-        <input
-          type="file"
-          className={cn(
-            "absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10",
-            file && "hidden"
-          )}
-          onChange={handleChange}
-          accept=".csv,.xlsx,.xls,.json"
-          disabled={isPending}
-        />
+        {!file && (
+          <input
+            type="file"
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+            onChange={handleChange}
+            accept=".csv,.xlsx,.xls,.json"
+            disabled={isPending}
+          />
+        )}
 
         <div className="relative z-20 flex flex-col items-center justify-center gap-4">
           {file ? (
@@ -114,12 +113,13 @@ export function FileUpload({ onUploadComplete }: { onUploadComplete?: () => void
                   </div>
                 </div>
                 <button 
+                  type="button"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     setFile(null);
                   }}
-                  className="p-1 hover:bg-destructive/10 hover:text-destructive rounded-full transition-colors z-30 relative"
+                  className="p-1 hover:bg-destructive/10 hover:text-destructive rounded-full transition-colors z-50 relative pointer-events-auto"
                   disabled={isPending}
                 >
                   <X className="w-5 h-5" />
@@ -127,6 +127,7 @@ export function FileUpload({ onUploadComplete }: { onUploadComplete?: () => void
               </div>
               
               <button
+                type="button"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -134,7 +135,7 @@ export function FileUpload({ onUploadComplete }: { onUploadComplete?: () => void
                 }}
                 disabled={isPending}
                 className={cn(
-                  "w-full py-2.5 rounded-lg font-medium transition-all duration-200 z-30 relative",
+                  "w-full py-2.5 rounded-lg font-medium transition-all duration-200 z-50 relative pointer-events-auto",
                   isPending
                     ? "bg-secondary text-muted-foreground cursor-wait"
                     : "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-lg active:scale-[0.98]"

@@ -93,8 +93,10 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
            - "dataKey": string (the key for the numerical value to plot)
            - "data": array of objects with keys corresponding to xAxisKey and dataKey. LIMIT to 20 data points maximum for readability. Aggregating data if necessary.
         
-        Ensure the JSON is valid.
+        Ensure the JSON is valid. Only return the JSON object.
       `;
+
+      console.log("Starting AI analysis for file:", file.id);
 
       const response = await openai.chat.completions.create({
         model: "gpt-5.1",
@@ -102,7 +104,10 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         response_format: { type: "json_object" },
       });
 
-      const result = JSON.parse(response.choices[0].message.content || "{}");
+      const rawContent = response.choices[0].message.content || "{}";
+      console.log("AI Response received:", rawContent);
+      
+      const result = JSON.parse(rawContent);
 
       const analysis = await storage.createAnalysis({
         fileId,
