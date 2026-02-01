@@ -1,15 +1,26 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Link, useLocation } from "wouter";
 import { useAnalyses } from "@/hooks/use-analyses";
-import { Menu, X, Home, BarChart3, FolderOpen, Clock, Plus } from "lucide-react";
-import { useState } from "react";
+import { Home, BarChart3, FolderOpen, Clock } from "lucide-react";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarProvider,
+  SidebarTrigger,
+  SidebarFooter,
+  SidebarHeader,
+} from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const [location] = useLocation();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { data: analyses } = useAnalyses();
 
   if (!user) {
@@ -24,138 +35,112 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   const recentAnalyses = (analyses || []).slice(0, 5);
 
+  const style = {
+    "--sidebar-width": "16rem",
+    "--sidebar-width-icon": "3rem",
+  };
+
   return (
-    <div className="min-h-screen bg-background flex">
-      <aside className="hidden lg:flex flex-col w-64 border-r bg-card/50 sticky top-0 h-screen">
-        <div className="h-14 border-b flex items-center px-5">
-          <Link href="/" className="font-semibold text-lg tracking-tight">
-            Noema
-          </Link>
-        </div>
-
-        <nav className="flex-1 overflow-y-auto py-4 px-3">
-          <div className="space-y-1">
-            {navItems.map((item) => {
-              const isActive =
-                location === item.href ||
-                (item.href !== "/" && location.startsWith(item.href));
-              return (
-                <Link key={item.href} href={item.href}>
-                  <div
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
-                      isActive
-                        ? "bg-primary/10 text-primary font-medium"
-                        : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                    )}
-                    data-testid={`nav-${item.label.toLowerCase()}`}
-                  >
-                    <item.icon className="w-4 h-4" />
-                    {item.label}
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-
-          {recentAnalyses.length > 0 && (
-            <div className="mt-8">
-              <div className="flex items-center gap-2 px-3 mb-2">
-                <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Recent
-                </span>
-              </div>
-              <div className="space-y-0.5">
-                {recentAnalyses.map((analysis: any) => (
-                  <Link key={analysis.id} href={`/analyses/${analysis.id}`}>
-                    <div
-                      className={cn(
-                        "px-3 py-2 rounded-lg text-sm truncate transition-colors",
-                        location === `/analyses/${analysis.id}`
-                          ? "bg-secondary text-foreground"
-                          : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
-                      )}
-                      data-testid={`recent-analysis-${analysis.id}`}
-                    >
-                      {analysis.title.replace("Analysis: ", "")}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-        </nav>
-
-        <div className="border-t p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-medium">
-                {user.firstName?.[0] || user.email?.[0] || "U"}
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-medium truncate">
-                  {user.firstName || "User"}
-                </p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {user.email}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => logout()}
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0"
-              data-testid="button-logout"
-            >
-              Sign out
-            </button>
-          </div>
-        </div>
-      </aside>
-
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="lg:hidden border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50 h-14">
-          <div className="px-4 h-full flex items-center justify-between">
-            <Link href="/" className="font-semibold text-lg">
+    <SidebarProvider style={style as React.CSSProperties}>
+      <div className="flex h-screen w-full">
+        <Sidebar>
+          <SidebarHeader className="border-b h-14 flex items-center px-4">
+            <Link href="/" className="font-semibold text-lg tracking-tight">
               Noema
             </Link>
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              data-testid="button-mobile-menu"
-            >
-              {isMobileMenuOpen ? (
-                <X className="w-5 h-5" />
-              ) : (
-                <Menu className="w-5 h-5" />
-              )}
-            </button>
-          </div>
+          </SidebarHeader>
 
-          {isMobileMenuOpen && (
-            <div className="border-t px-4 py-4 space-y-2 bg-background">
-              {navItems.map((item) => (
-                <Link key={item.href} href={item.href}>
-                  <div
-                    className="flex items-center gap-3 py-2 text-sm"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <item.icon className="w-4 h-4" />
-                    {item.label}
-                  </div>
-                </Link>
-              ))}
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {navItems.map((item) => {
+                    const isActive =
+                      location === item.href ||
+                      (item.href !== "/" && location.startsWith(item.href));
+                    return (
+                      <SidebarMenuItem key={item.href}>
+                        <SidebarMenuButton asChild isActive={isActive}>
+                          <Link href={item.href} data-testid={`nav-${item.label.toLowerCase()}`}>
+                            <item.icon className="w-4 h-4" />
+                            <span>{item.label}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            {recentAnalyses.length > 0 && (
+              <SidebarGroup>
+                <SidebarGroupLabel className="flex items-center gap-2">
+                  <Clock className="w-3.5 h-3.5" />
+                  Recent
+                </SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {recentAnalyses.map((analysis: any) => {
+                      const isActive = location === `/analyses/${analysis.id}`;
+                      return (
+                        <SidebarMenuItem key={analysis.id}>
+                          <SidebarMenuButton asChild isActive={isActive}>
+                            <Link
+                              href={`/analyses/${analysis.id}`}
+                              className="truncate"
+                              data-testid={`recent-analysis-${analysis.id}`}
+                            >
+                              <span className="truncate">
+                                {analysis.title.replace("Analysis: ", "")}
+                              </span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      );
+                    })}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
+          </SidebarContent>
+
+          <SidebarFooter className="border-t p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-medium shrink-0">
+                  {user.firstName?.[0] || user.email?.[0] || "U"}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">
+                    {user.firstName || "User"}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {user.email}
+                  </p>
+                </div>
+              </div>
               <button
                 onClick={() => logout()}
-                className="text-sm text-muted-foreground py-2 w-full text-left"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                data-testid="button-logout"
               >
                 Sign out
               </button>
             </div>
-          )}
-        </header>
+          </SidebarFooter>
+        </Sidebar>
 
-        <main className="flex-1">{children}</main>
+        <div className="flex flex-col flex-1 min-w-0">
+          <header className="h-14 border-b flex items-center px-4 lg:hidden">
+            <SidebarTrigger data-testid="button-sidebar-toggle" />
+            <Link href="/" className="font-semibold text-lg ml-3">
+              Noema
+            </Link>
+          </header>
+          <main className="flex-1 overflow-auto">{children}</main>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }

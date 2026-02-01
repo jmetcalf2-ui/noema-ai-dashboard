@@ -39,10 +39,25 @@ export default function AnalysisDetail() {
     enabled: !!analysis,
   });
 
+  const sanitizedData = useMemo(() => {
+    if (!fileData?.rows || !fileData?.headers) return null;
+    const sanitizedHeaders = fileData.headers.filter(
+      (h: string) => h && typeof h === "string" && h.trim() !== ""
+    );
+    const sanitizedRows = fileData.rows.map((row: any) => {
+      const newRow: Record<string, any> = {};
+      sanitizedHeaders.forEach((h: string) => {
+        newRow[h] = row[h];
+      });
+      return newRow;
+    });
+    return { headers: sanitizedHeaders, rows: sanitizedRows };
+  }, [fileData]);
+
   const metrics = useMemo(() => {
-    if (!fileData?.rows) return [];
-    const rows = fileData.rows;
-    const headers = fileData.headers;
+    if (!sanitizedData?.rows) return [];
+    const rows = sanitizedData.rows;
+    const headers = sanitizedData.headers;
     
     const numericCols = headers.filter((h: string) => 
       rows.some((r: any) => typeof r[h] === "number" && !isNaN(r[h]))
@@ -150,8 +165,8 @@ export default function AnalysisDetail() {
               ))}
             </div>
 
-            {fileData?.rows && (
-              <ChartBuilder data={fileData.rows} onChartCreate={handleCustomChart} />
+            {sanitizedData?.rows && sanitizedData.rows.length > 0 && (
+              <ChartBuilder data={sanitizedData.rows} onChartCreate={handleCustomChart} />
             )}
           </TabsContent>
 
@@ -182,13 +197,13 @@ export default function AnalysisDetail() {
           </TabsContent>
 
           <TabsContent value="data" className="mt-0">
-            {fileData?.rows ? (
+            {sanitizedData?.rows ? (
               <Card className="overflow-hidden">
                 <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
                   <table className="w-full text-sm">
                     <thead className="bg-secondary/50 sticky top-0">
                       <tr>
-                        {fileData.headers.map((header: string, idx: number) => (
+                        {sanitizedData.headers.map((header: string, idx: number) => (
                           <th
                             key={idx}
                             className="px-4 py-3 text-left font-medium text-muted-foreground text-xs uppercase tracking-wide whitespace-nowrap"
@@ -199,9 +214,9 @@ export default function AnalysisDetail() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
-                      {fileData.rows.slice(0, 100).map((row: any, rowIdx: number) => (
+                      {sanitizedData.rows.slice(0, 100).map((row: any, rowIdx: number) => (
                         <tr key={rowIdx} className="hover:bg-secondary/30 transition-colors">
-                          {fileData.headers.map((header: string, colIdx: number) => (
+                          {sanitizedData.headers.map((header: string, colIdx: number) => (
                             <td key={colIdx} className="px-4 py-2.5 whitespace-nowrap">
                               {row[header] ?? "-"}
                             </td>
@@ -211,9 +226,9 @@ export default function AnalysisDetail() {
                     </tbody>
                   </table>
                 </div>
-                {fileData.rows.length > 100 && (
+                {sanitizedData.rows.length > 100 && (
                   <div className="px-4 py-3 bg-secondary/30 text-sm text-muted-foreground border-t">
-                    Showing 100 of {fileData.rows.length} records
+                    Showing 100 of {sanitizedData.rows.length} records
                   </div>
                 )}
               </Card>

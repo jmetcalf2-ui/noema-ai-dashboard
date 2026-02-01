@@ -65,3 +65,32 @@ Preferred communication style: Simple, everyday language.
 - **Animation**: GSAP, Framer Motion
 - **Forms**: React Hook Form with Zod resolver
 - **Date Handling**: date-fns
+
+## Recent Changes (February 2026)
+
+### Ultra-Professional Dashboard Redesign
+- Redesigned entire dashboard with professional typography (Inter font), refined color palette, and sleek aesthetic
+- Built professional sidebar navigation with recent analyses list and user profile section
+- Created tabbed interface (Overview, Insights, Data, Ask AI) in analysis detail page
+
+### AI Chat for Data Exploration
+- Added AI chat panel for conversational data exploration with streaming responses
+- Uses SSE endpoint at `/api/chat/data-analysis` with OpenAI gpt-4o model
+- Includes conversation context and analysis summary for informed responses
+
+### Custom Chart Builder
+- Built chart builder allowing users to create custom visualizations
+- Users select chart type (bar, line, area, pie) and data columns
+- Real-time preview before adding charts to dashboard
+
+### Export Functionality
+- Added export dropdown menu with Report (.txt) and CSV data export options
+- Professional data table view displaying parsed CSV data with headers
+
+### Key Components
+- `Layout.tsx` - Professional sidebar layout with navigation and user profile
+- `ChartBuilder.tsx` - Custom chart creation with column selection
+- `DataChat.tsx` - AI chat interface for data questions
+- `ChartRenderer.tsx` - Renders various chart types with gradient styling
+- `ExportMenu.tsx` - Export dropdown for reports and data
+- `AnalysisDetail.tsx` - Main analysis page with tabbed interface
