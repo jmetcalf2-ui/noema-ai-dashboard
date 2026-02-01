@@ -4,69 +4,46 @@ import {
   XAxis, 
   YAxis, 
   CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
   Area,
-  AreaChart
+  AreaChart,
+  LineChart,
+  Line
 } from 'recharts';
+import { 
+  ChartContainer, 
+  ChartTooltip, 
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+  type ChartConfig 
+} from '@/components/ui/chart';
 
-type ChartConfig = {
-  type: 'bar' | 'line' | 'pie' | 'area' | 'radial';
+type ChartConfigProp = {
+  type: 'bar' | 'line' | 'pie' | 'area';
   title: string;
   description?: string;
   dataKey: string;
-  categoryKey: string;
+  categoryKey?: string;
+  xAxisKey?: string;
   data: any[];
   colors?: string[];
 };
 
 const CHART_COLORS = [
-  { main: '#6366f1', gradient: '#818cf8' },
-  { main: '#10b981', gradient: '#34d399' },
-  { main: '#f59e0b', gradient: '#fbbf24' },
-  { main: '#ef4444', gradient: '#f87171' },
-  { main: '#8b5cf6', gradient: '#a78bfa' },
-  { main: '#ec4899', gradient: '#f472b6' },
-  { main: '#06b6d4', gradient: '#22d3ee' },
-  { main: '#84cc16', gradient: '#a3e635' },
+  'hsl(221, 83%, 53%)',
+  'hsl(160, 60%, 45%)',
+  'hsl(43, 96%, 56%)',
+  'hsl(0, 84%, 60%)',
+  'hsl(262, 83%, 58%)',
+  'hsl(330, 81%, 60%)',
+  'hsl(187, 85%, 43%)',
+  'hsl(142, 71%, 45%)',
 ];
 
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-popover border border-border rounded-lg shadow-lg px-3 py-2">
-        <p className="text-xs text-muted-foreground mb-1">{label}</p>
-        {payload.map((entry: any, index: number) => (
-          <p key={index} className="text-sm font-medium" style={{ color: entry.color }}>
-            {entry.name}: {typeof entry.value === 'number' ? entry.value.toLocaleString() : entry.value}
-          </p>
-        ))}
-      </div>
-    );
-  }
-  return null;
-};
-
-const CustomPieTooltip = ({ active, payload }: any) => {
-  if (active && payload && payload.length) {
-    const data = payload[0];
-    return (
-      <div className="bg-popover border border-border rounded-lg shadow-lg px-3 py-2">
-        <p className="text-sm font-medium">{data.name}</p>
-        <p className="text-xs text-muted-foreground">
-          {typeof data.value === 'number' ? data.value.toLocaleString() : data.value}
-        </p>
-      </div>
-    );
-  }
-  return null;
-};
-
-export function ChartRenderer({ config }: { config: ChartConfig }) {
+export function ChartRenderer({ config }: { config: ChartConfigProp }) {
   if (!config || !config.data || config.data.length === 0) {
     return (
       <div className="h-64 flex items-center justify-center text-muted-foreground text-sm border border-dashed rounded-lg">
@@ -75,167 +52,182 @@ export function ChartRenderer({ config }: { config: ChartConfig }) {
     );
   }
 
-  const gradientId = `gradient-${config.title.replace(/\s/g, '-')}`;
+  const categoryKey = config.categoryKey || config.xAxisKey || 'name';
+
+  const chartConfig: ChartConfig = {
+    [config.dataKey]: {
+      label: config.dataKey,
+      color: CHART_COLORS[0],
+    },
+  };
+
+  config.data.forEach((item, index) => {
+    const key = item[categoryKey];
+    if (key) {
+      chartConfig[key] = {
+        label: key,
+        color: CHART_COLORS[index % CHART_COLORS.length],
+      };
+    }
+  });
 
   const renderChart = () => {
     switch (config.type) {
       case 'bar':
         return (
-          <ResponsiveContainer width="100%" height={320}>
-            <BarChart data={config.data} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
-              <defs>
-                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={CHART_COLORS[0].gradient} stopOpacity={1} />
-                  <stop offset="100%" stopColor={CHART_COLORS[0].main} stopOpacity={1} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
+          <ChartContainer config={chartConfig} className="h-[300px] w-full">
+            <BarChart data={config.data} margin={{ top: 20, right: 20, left: 0, bottom: 60 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border/50" />
               <XAxis 
-                dataKey={config.categoryKey} 
-                stroke="hsl(var(--muted-foreground))" 
-                fontSize={11}
+                dataKey={categoryKey} 
                 tickLine={false} 
                 axisLine={false}
-                tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                interval={0}
+                fontSize={11}
                 angle={-45}
                 textAnchor="end"
                 height={60}
+                interval={0}
               />
               <YAxis 
-                stroke="hsl(var(--muted-foreground))" 
-                fontSize={11}
                 tickLine={false} 
                 axisLine={false}
-                tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(1)}k` : value}
+                fontSize={11}
                 width={50}
+                tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value}
               />
-              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted)/0.1)' }} />
+              <ChartTooltip content={<ChartTooltipContent />} />
               <Bar 
                 dataKey={config.dataKey} 
-                fill={`url(#${gradientId})`}
-                radius={[6, 6, 0, 0]} 
-                maxBarSize={48}
-                animationDuration={800}
-                animationBegin={0}
+                fill={CHART_COLORS[0]}
+                radius={[4, 4, 0, 0]} 
+                maxBarSize={40}
               />
             </BarChart>
-          </ResponsiveContainer>
+          </ChartContainer>
         );
 
       case 'line':
-      case 'area':
         return (
-          <ResponsiveContainer width="100%" height={320}>
-            <AreaChart data={config.data} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
-              <defs>
-                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={CHART_COLORS[1].main} stopOpacity={0.3} />
-                  <stop offset="100%" stopColor={CHART_COLORS[1].main} stopOpacity={0.05} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
+          <ChartContainer config={chartConfig} className="h-[300px] w-full">
+            <LineChart data={config.data} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border/50" />
               <XAxis 
-                dataKey={config.categoryKey} 
-                stroke="hsl(var(--muted-foreground))" 
-                fontSize={11}
+                dataKey={categoryKey} 
                 tickLine={false} 
                 axisLine={false}
-                tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                fontSize={11}
               />
               <YAxis 
-                stroke="hsl(var(--muted-foreground))" 
-                fontSize={11}
                 tickLine={false} 
                 axisLine={false}
-                tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(1)}k` : value}
+                fontSize={11}
                 width={50}
               />
-              <Tooltip content={<CustomTooltip />} />
-              <Area 
-                type="monotone" 
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Line 
+                type="monotone"
                 dataKey={config.dataKey} 
-                stroke={CHART_COLORS[1].main}
-                strokeWidth={2.5}
-                fill={`url(#${gradientId})`}
-                animationDuration={800}
+                stroke={CHART_COLORS[0]}
+                strokeWidth={2}
+                dot={{ r: 4, fill: CHART_COLORS[0] }}
+                activeDot={{ r: 6 }}
+              />
+            </LineChart>
+          </ChartContainer>
+        );
+
+      case 'area':
+        return (
+          <ChartContainer config={chartConfig} className="h-[300px] w-full">
+            <AreaChart data={config.data} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
+              <defs>
+                <linearGradient id={`fill-${config.title}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={CHART_COLORS[1]} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={CHART_COLORS[1]} stopOpacity={0.05} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border/50" />
+              <XAxis 
+                dataKey={categoryKey} 
+                tickLine={false} 
+                axisLine={false}
+                fontSize={11}
+              />
+              <YAxis 
+                tickLine={false} 
+                axisLine={false}
+                fontSize={11}
+                width={50}
+              />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Area 
+                type="monotone"
+                dataKey={config.dataKey} 
+                stroke={CHART_COLORS[1]}
+                strokeWidth={2}
+                fill={`url(#fill-${config.title})`}
               />
             </AreaChart>
-          </ResponsiveContainer>
+          </ChartContainer>
         );
 
       case 'pie':
         return (
-          <ResponsiveContainer width="100%" height={320}>
+          <ChartContainer config={chartConfig} className="h-[300px] w-full">
             <PieChart>
               <Pie
                 data={config.data}
                 cx="50%"
                 cy="50%"
-                innerRadius={70}
-                outerRadius={110}
-                paddingAngle={3}
+                innerRadius={60}
+                outerRadius={100}
+                paddingAngle={2}
                 dataKey={config.dataKey}
-                nameKey={config.categoryKey}
-                animationDuration={800}
-                animationBegin={0}
+                nameKey={categoryKey}
               >
                 {config.data.map((entry: any, index: number) => (
                   <Cell 
                     key={`cell-${index}`} 
-                    fill={CHART_COLORS[index % CHART_COLORS.length].main}
+                    fill={CHART_COLORS[index % CHART_COLORS.length]}
                     stroke="none"
                   />
                 ))}
               </Pie>
-              <Tooltip content={<CustomPieTooltip />} />
-              <Legend 
-                verticalAlign="bottom" 
-                height={40} 
-                iconType="circle"
-                iconSize={8}
-                formatter={(value) => <span className="text-xs text-foreground ml-1">{value}</span>}
-              />
+              <ChartTooltip content={<ChartTooltipContent nameKey={categoryKey} />} />
+              <ChartLegend content={<ChartLegendContent nameKey={categoryKey} />} />
             </PieChart>
-          </ResponsiveContainer>
+          </ChartContainer>
         );
 
       default:
         return (
-          <ResponsiveContainer width="100%" height={320}>
-            <BarChart data={config.data} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
-              <defs>
-                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={CHART_COLORS[0].gradient} stopOpacity={1} />
-                  <stop offset="100%" stopColor={CHART_COLORS[0].main} stopOpacity={1} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
+          <ChartContainer config={chartConfig} className="h-[300px] w-full">
+            <BarChart data={config.data} margin={{ top: 20, right: 20, left: 0, bottom: 60 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border/50" />
               <XAxis 
-                dataKey={config.categoryKey} 
-                stroke="hsl(var(--muted-foreground))" 
-                fontSize={11}
+                dataKey={categoryKey} 
                 tickLine={false} 
                 axisLine={false}
+                fontSize={11}
+                angle={-45}
+                textAnchor="end"
+                height={60}
               />
               <YAxis 
-                stroke="hsl(var(--muted-foreground))" 
-                fontSize={11}
                 tickLine={false} 
                 axisLine={false}
+                fontSize={11}
                 width={50}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <ChartTooltip content={<ChartTooltipContent />} />
               <Bar 
                 dataKey={config.dataKey} 
-                fill={`url(#${gradientId})`}
-                radius={[6, 6, 0, 0]} 
-                maxBarSize={48}
+                fill={CHART_COLORS[0]}
+                radius={[4, 4, 0, 0]} 
+                maxBarSize={40}
               />
             </BarChart>
-          </ResponsiveContainer>
+          </ChartContainer>
         );
     }
   };
