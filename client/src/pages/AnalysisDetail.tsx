@@ -118,17 +118,15 @@ export default function AnalysisDetail() {
           transition={{ duration: 0.3 }}
           className="pb-6 border-b"
         >
-          <div className="flex items-start justify-between gap-6">
-            <div className="space-y-2 flex-1">
-              <h1 className="text-xl font-medium" data-testid="text-analysis-title">
-                {analysis.title.replace("Analysis: ", "")}
-              </h1>
-              <p className="text-[14px] text-muted-foreground max-w-2xl leading-relaxed" data-testid="text-summary">
-                {analysis.summary}
-              </p>
-            </div>
+          <div className="flex items-center justify-between gap-4 mb-2">
+            <h1 className="text-xl font-medium" data-testid="text-analysis-title">
+              {analysis.title.replace("Analysis: ", "")}
+            </h1>
             <ExportMenu analysis={analysis} data={fileData} />
           </div>
+          <p className="text-[14px] text-muted-foreground max-w-2xl leading-relaxed" data-testid="text-summary">
+            {analysis.summary}
+          </p>
         </motion.header>
 
         <motion.div 

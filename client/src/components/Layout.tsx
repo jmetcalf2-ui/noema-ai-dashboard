@@ -127,13 +127,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </Sidebar>
 
         <div className="flex flex-col flex-1 min-w-0">
-          <header className="h-14 border-b flex items-center px-4 lg:hidden">
+          <header className="h-14 border-b flex items-center gap-3 px-4 lg:hidden">
             <SidebarTrigger data-testid="button-sidebar-toggle" />
-            <Link href="/" className="flex items-center gap-2 ml-3">
-              <div className="w-5 h-5 rounded bg-foreground flex items-center justify-center">
-                <BarChart3 className="w-3 h-3 text-background" />
-              </div>
-              <span className="font-medium text-sm">Noema</span>
+            <Link href="/">
+              <span className="text-[17px] font-semibold tracking-tight text-foreground">Noema</span>
             </Link>
           </header>
           <main className="flex-1 overflow-auto">{children}</main>
