@@ -47,13 +47,21 @@ export function FileUpload({ onUploadComplete }: { onUploadComplete?: () => void
     formData.append("file", file);
 
     try {
+      console.log("Starting upload process for file:", file.name);
+      const formData = new FormData();
+      formData.append("file", file);
+
       const uploadedFile = await uploadMutation.mutateAsync(formData);
+      console.log("File uploaded successfully, ID:", uploadedFile.id);
+      
       toast({
         title: "File Uploaded",
         description: "Analyzing your data...",
       });
       
+      console.log("Starting analysis...");
       const analysis = await analyzeMutation.mutateAsync({ fileId: uploadedFile.id });
+      console.log("Analysis completed, ID:", analysis.id);
       
       toast({
         title: "Success",
@@ -64,6 +72,7 @@ export function FileUpload({ onUploadComplete }: { onUploadComplete?: () => void
       onUploadComplete?.();
       setLocation(`/analyses/${analysis.id}`);
     } catch (error: any) {
+      console.error("Upload/Analysis flow failed:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to process file",

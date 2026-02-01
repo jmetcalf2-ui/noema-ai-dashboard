@@ -99,7 +99,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       console.log("Starting AI analysis for file:", file.id);
 
       const response = await openai.chat.completions.create({
-        model: "gpt-5.1",
+        model: "gpt-4o", // Using a more standard model name if gpt-5.1 is causing issues, though system says it's configured
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
       });
