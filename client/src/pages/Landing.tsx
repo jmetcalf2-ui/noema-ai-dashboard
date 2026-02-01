@@ -66,18 +66,52 @@ export default function Landing() {
     <div className="min-h-screen bg-background flex flex-col">
       <header className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-8 h-16 flex items-center justify-between gap-4">
-          <span className="text-[20px] font-semibold tracking-tight text-foreground">Noema</span>
-          <a href="/api/login">
-            <Button variant="ghost" size="sm" data-testid="button-login">
-              Log in
-            </Button>
-          </a>
+          <div className="flex items-center gap-8">
+            <a href="/" className="text-[20px] font-semibold tracking-tight text-foreground hover:opacity-80 transition-opacity">
+              Noema
+            </a>
+            <nav className="hidden md:flex items-center gap-6">
+              <a 
+                href="#features" 
+                className="text-[14px] text-muted-foreground hover:text-foreground transition-colors"
+                data-testid="nav-features"
+              >
+                Features
+              </a>
+              <a 
+                href="#capabilities" 
+                className="text-[14px] text-muted-foreground hover:text-foreground transition-colors"
+                data-testid="nav-capabilities"
+              >
+                Capabilities
+              </a>
+              <a 
+                href="#about" 
+                className="text-[14px] text-muted-foreground hover:text-foreground transition-colors"
+                data-testid="nav-about"
+              >
+                About
+              </a>
+            </nav>
+          </div>
+          <div className="flex items-center gap-3">
+            <a href="/api/login">
+              <Button variant="ghost" size="sm" data-testid="button-login">
+                Log in
+              </Button>
+            </a>
+            <a href="/api/login" className="hidden sm:block">
+              <Button size="sm" data-testid="button-signup">
+                Sign up
+              </Button>
+            </a>
+          </div>
         </div>
       </header>
 
       <main className="flex-1">
         
-        <section className="px-8 pt-24 pb-28">
+        <section id="features" className="px-8 pt-24 pb-28 scroll-mt-20">
           <div className="max-w-6xl mx-auto text-center space-y-10">
             <div className="space-y-6">
               <p className="text-sm font-medium tracking-wide text-muted-foreground uppercase">
@@ -121,7 +155,7 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="px-8 py-24 bg-secondary/30">
+        <section id="capabilities" className="px-8 py-24 bg-secondary/30 scroll-mt-20">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <p className="text-sm font-medium tracking-wide text-muted-foreground uppercase mb-3">
@@ -151,7 +185,7 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="px-8 py-24">
+        <section id="about" className="px-8 py-24 scroll-mt-20">
           <div className="max-w-6xl mx-auto">
             <div className="max-w-3xl mx-auto text-center">
               <p className="text-sm font-medium tracking-wide text-muted-foreground uppercase mb-3">
