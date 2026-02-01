@@ -44,7 +44,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <SidebarProvider style={style as React.CSSProperties}>
       <div className="flex h-screen w-full">
         <Sidebar>
-          <SidebarHeader className="h-14 flex items-center px-5 border-b border-sidebar-border">
+          <SidebarHeader className="h-14 flex items-center justify-start px-5 border-b border-sidebar-border">
             <Link href="/" data-testid="link-logo">
               <span className="text-[18px] font-semibold tracking-tight text-foreground">Noema</span>
             </Link>

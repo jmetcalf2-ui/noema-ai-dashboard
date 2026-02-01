@@ -23,8 +23,8 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <header className="border-b">
-        <div className="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
-          <span className="text-[18px] font-semibold tracking-tight text-foreground">Noema</span>
+        <div className="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between gap-4">
+          <span className="text-[18px] font-semibold tracking-tight text-foreground text-left">Noema</span>
           <a href="/api/login">
             <Button variant="ghost" size="sm" data-testid="button-login">
               Log in
