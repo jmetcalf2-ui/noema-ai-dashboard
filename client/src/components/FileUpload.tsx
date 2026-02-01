@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { Upload, FileSpreadsheet, Loader2, X, CheckCircle2 } from "lucide-react";
+import { Upload, FileSpreadsheet, Loader2, X, Shield } from "lucide-react";
 import { useUploadFile } from "@/hooks/use-files";
 import { useCreateAnalysis } from "@/hooks/use-analyses";
 import { useToast } from "@/components/ui/use-toast";
@@ -129,7 +129,11 @@ export function FileUpload({ onUploadComplete }: { onUploadComplete?: () => void
                 className="flex items-center gap-2"
               >
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>{uploadMutation.isPending ? "Uploading..." : "Analyzing..."}</span>
+                <span>
+                  {uploadMutation.isPending 
+                    ? "Uploading file..." 
+                    : "Generating insights and visualizations..."}
+                </span>
               </motion.div>
             ) : (
               <motion.span
@@ -138,7 +142,7 @@ export function FileUpload({ onUploadComplete }: { onUploadComplete?: () => void
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
               >
-                Analyze
+                Analyze Data
               </motion.span>
             )}
           </AnimatePresence>
@@ -193,6 +197,12 @@ export function FileUpload({ onUploadComplete }: { onUploadComplete?: () => void
           <span>Up to 5MB</span>
         </div>
       </label>
+      
+      {/* Privacy notice */}
+      <div className="flex items-center justify-center gap-1.5 mt-3 text-[11px] text-muted-foreground/60">
+        <Shield className="w-3 h-3" />
+        <span>Your data is processed securely and not used for AI training</span>
+      </div>
     </div>
   );
 }

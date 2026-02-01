@@ -4,6 +4,8 @@ import { ChartRenderer } from "@/components/ChartRenderer";
 import { DataChat } from "@/components/DataChat";
 import { ChartBuilder } from "@/components/ChartBuilder";
 import { MetricCard } from "@/components/MetricCard";
+import { DatasetSummary } from "@/components/DatasetSummary";
+import { InsightCard, categorizeInsight, groupInsights } from "@/components/InsightCard";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,7 +16,6 @@ import { motion } from "framer-motion";
 import {
   Loader2,
   BarChart3,
-  MessageSquare,
   Table2,
   Lightbulb,
   ArrowLeft,
@@ -22,6 +23,9 @@ import {
   TrendingUp,
   Layers,
   Sparkles,
+  Zap,
+  AlertTriangle,
+  Database,
 } from "lucide-react";
 
 export default function AnalysisDetail() {
@@ -73,14 +77,28 @@ export default function AnalysisDetail() {
     ];
   }, [sanitizedData, analysis, customCharts]);
 
+  // Process insights with categorization
+  const processedInsights = useMemo(() => {
+    if (!analysis?.insights) return null;
+
+    const processed = analysis.insights.map((insight: string | { insight: string }) => {
+      const text = typeof insight === "string" ? insight : insight.insight;
+      const { category, importance, whyItMatters } = categorizeInsight(text);
+      return { text, category, importance, whyItMatters };
+    });
+
+    return groupInsights(processed);
+  }, [analysis?.insights]);
+
   const handleCustomChart = (config: any) => {
     setCustomCharts((prev) => [...prev, config]);
   };
 
   if (isLoading) {
     return (
-      <div className="flex h-[60vh] items-center justify-center">
+      <div className="flex h-[60vh] items-center justify-center flex-col gap-3">
         <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+        <span className="text-[13px] text-muted-foreground">Loading analysis...</span>
       </div>
     );
   }
@@ -97,6 +115,13 @@ export default function AnalysisDetail() {
       </div>
     );
   }
+
+  const sectionConfig = {
+    finding: { icon: Zap, label: "Key Findings" },
+    trend: { icon: TrendingUp, label: "Trends" },
+    anomaly: { icon: AlertTriangle, label: "Anomalies" },
+    quality: { icon: Database, label: "Data Quality Notes" },
+  };
 
   return (
     <div className="min-h-screen pb-16">
@@ -166,6 +191,10 @@ export default function AnalysisDetail() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6 mt-0">
+            {sanitizedData && (
+              <DatasetSummary headers={sanitizedData.headers} rows={sanitizedData.rows} />
+            )}
+            
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {analysis.charts?.map((chartConfig: any, idx: number) => (
                 <ChartRenderer key={`original-${idx}`} config={chartConfig} />
@@ -181,33 +210,42 @@ export default function AnalysisDetail() {
           </TabsContent>
 
           <TabsContent value="insights" className="mt-0">
-            <div className="grid gap-4 max-w-2xl">
-              {analysis.insights?.map((insight: string | { insight: string }, idx: number) => {
-                const insightText = typeof insight === "string" ? insight : insight.insight;
-                return (
-                  <motion.div
-                    key={idx}
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                  >
-                    <Card
-                      className="p-4"
-                      data-testid={`insight-item-${idx}`}
-                    >
-                      <div className="flex gap-4">
-                        <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
-                          <Lightbulb className="w-4 h-4 text-amber-600" />
-                        </div>
-                        <p className="text-[14px] leading-relaxed text-foreground/90 pt-1">
-                          {insightText}
-                        </p>
+            {processedInsights ? (
+              <div className="space-y-8 max-w-2xl">
+                {(Object.keys(sectionConfig) as Array<keyof typeof sectionConfig>).map(key => {
+                  const insights = processedInsights[key];
+                  if (!insights || insights.length === 0) return null;
+                  
+                  const { icon: Icon, label } = sectionConfig[key];
+                  
+                  return (
+                    <div key={key} className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Icon className="w-4 h-4 text-muted-foreground" />
+                        <h3 className="text-[13px] font-medium text-muted-foreground">{label}</h3>
+                        <span className="text-[11px] text-muted-foreground/60 ml-auto">{insights.length}</span>
                       </div>
-                    </Card>
-                  </motion.div>
-                );
-              })}
-            </div>
+                      <div className="space-y-3">
+                        {insights.map((insight: any, idx: number) => (
+                          <InsightCard
+                            key={idx}
+                            insight={insight.text}
+                            category={insight.category}
+                            importance={insight.importance}
+                            whyItMatters={insight.whyItMatters}
+                            index={idx}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-48 text-muted-foreground text-[14px]">
+                No insights available
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="data" className="mt-0">
@@ -258,7 +296,7 @@ export default function AnalysisDetail() {
             <div className="max-w-xl">
               <DataChat
                 analysisId={id}
-                dataContext={`File: ${analysis.title}, Summary: ${analysis.summary}`}
+                dataContext={`File: ${analysis.title}, Summary: ${analysis.summary}, Columns: ${sanitizedData?.headers?.join(", ") || ""}`}
               />
             </div>
           </TabsContent>

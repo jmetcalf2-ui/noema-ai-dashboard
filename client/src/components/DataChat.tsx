@@ -1,13 +1,15 @@
 import { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Sparkles, Loader2, User, ArrowUp, Plus } from "lucide-react";
+import { Sparkles, Loader2, User, ArrowUp, Plus, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
+  sources?: string[];
+  confidence?: "high" | "medium" | "low";
 }
 
 interface DataChatProps {
@@ -22,6 +24,9 @@ export function DataChat({ analysisId, dataContext, className }: DataChatProps) 
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Extract column names from context for source detection
+  const columns = dataContext.match(/Columns: ([^,]+(?:, [^,]+)*)/)?.[1]?.split(", ") || [];
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -81,11 +86,27 @@ export function DataChat({ analysisId, dataContext, className }: DataChatProps) 
               const parsed = JSON.parse(data);
               if (parsed.content) {
                 assistantMessage += parsed.content;
+                
+                // Detect which columns were referenced
+                const usedColumns = columns.filter(col => 
+                  assistantMessage.toLowerCase().includes(col.toLowerCase())
+                );
+                
+                // Estimate confidence based on response length and specificity
+                let confidence: "high" | "medium" | "low" = "medium";
+                if (assistantMessage.length > 200 && usedColumns.length > 0) {
+                  confidence = "high";
+                } else if (assistantMessage.length < 50 || assistantMessage.includes("cannot") || assistantMessage.includes("don't have")) {
+                  confidence = "low";
+                }
+
                 setMessages((prev) => {
                   const updated = [...prev];
                   updated[updated.length - 1] = {
                     role: "assistant",
                     content: assistantMessage,
+                    sources: usedColumns.slice(0, 3),
+                    confidence,
                   };
                   return updated;
                 });
@@ -99,7 +120,8 @@ export function DataChat({ analysisId, dataContext, className }: DataChatProps) 
         ...prev,
         {
           role: "assistant",
-          content: "Sorry, I encountered an error. Please try again.",
+          content: "I encountered an issue processing your request. Please try rephrasing your question.",
+          confidence: "low",
         },
       ]);
     } finally {
@@ -114,23 +136,31 @@ export function DataChat({ analysisId, dataContext, className }: DataChatProps) 
     }
   };
 
+  // Context-aware suggestions based on the data
   const suggestions = [
-    "What trends do you see?",
-    "Summarize the key findings",
-    "What's the most significant insight?",
+    "What patterns stand out in this data?",
+    "Summarize the key metrics",
+    "Are there any outliers I should know about?",
+    "What would you recommend investigating further?",
   ];
 
   const hasValue = input.trim().length > 0;
 
+  const confidenceColors = {
+    high: "text-emerald-600 dark:text-emerald-400",
+    medium: "text-amber-600 dark:text-amber-400", 
+    low: "text-slate-500 dark:text-slate-400",
+  };
+
   return (
-    <Card className={cn("flex flex-col h-[480px] overflow-hidden", className)}>
+    <Card className={cn("flex flex-col h-[520px] overflow-hidden", className)}>
       <div className="flex items-center gap-2.5 px-5 py-4 border-b">
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
-          <Sparkles className="w-3.5 h-3.5 text-white" />
+        <div className="w-7 h-7 rounded-lg bg-secondary flex items-center justify-center">
+          <Sparkles className="w-3.5 h-3.5 text-muted-foreground" />
         </div>
         <div>
           <span className="text-[14px] font-medium">Data Assistant</span>
-          <p className="text-[11px] text-muted-foreground">Ask questions about your analysis</p>
+          <p className="text-[11px] text-muted-foreground">Ask analytical questions about your data</p>
         </div>
       </div>
 
@@ -142,14 +172,17 @@ export function DataChat({ analysisId, dataContext, className }: DataChatProps) 
               animate={{ opacity: 1 }}
               className="h-full flex flex-col items-center justify-center text-center px-4"
             >
-              <div className="flex flex-wrap gap-2 justify-center">
+              <p className="text-[13px] text-muted-foreground mb-4">
+                Ask a question to explore your data
+              </p>
+              <div className="flex flex-wrap gap-2 justify-center max-w-md">
                 {suggestions.map((s, i) => (
                   <Button
                     key={i}
                     variant="outline"
                     size="sm"
                     onClick={() => setInput(s)}
-                    className="rounded-full text-[12px]"
+                    className="rounded-full text-[12px] h-8"
                     data-testid={`suggestion-${i}`}
                   >
                     {s}
@@ -170,22 +203,44 @@ export function DataChat({ analysisId, dataContext, className }: DataChatProps) 
                 )}
               >
                 {msg.role === "assistant" && (
-                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shrink-0">
-                    <Sparkles className="w-3.5 h-3.5 text-white" />
+                  <div className="w-7 h-7 rounded-lg bg-secondary flex items-center justify-center shrink-0">
+                    <Sparkles className="w-3.5 h-3.5 text-muted-foreground" />
                   </div>
                 )}
-                <div
-                  className={cn(
-                    "max-w-[80%] px-4 py-2.5 rounded-2xl text-[14px] leading-relaxed",
-                    msg.role === "user"
-                      ? "bg-foreground text-background rounded-br-md"
-                      : "bg-secondary text-foreground rounded-bl-md"
-                  )}
-                >
-                  {msg.content || (
-                    <div className="flex items-center gap-1.5">
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span className="text-[13px] text-muted-foreground">Thinking...</span>
+                <div className="max-w-[80%]">
+                  <div
+                    className={cn(
+                      "px-4 py-2.5 rounded-2xl text-[14px] leading-relaxed",
+                      msg.role === "user"
+                        ? "bg-foreground text-background rounded-br-md"
+                        : "bg-secondary text-foreground rounded-bl-md"
+                    )}
+                  >
+                    {msg.content || (
+                      <div className="flex items-center gap-1.5">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span className="text-[13px] text-muted-foreground">Analyzing...</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Source and confidence indicators for assistant messages */}
+                  {msg.role === "assistant" && msg.content && (
+                    <div className="flex items-center gap-3 mt-1.5 px-1">
+                      {msg.sources && msg.sources.length > 0 && (
+                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                          <Info className="w-3 h-3" />
+                          <span>Based on: {msg.sources.join(", ")}</span>
+                        </div>
+                      )}
+                      {msg.confidence && (
+                        <span className={cn(
+                          "text-[10px] font-medium uppercase tracking-wider",
+                          confidenceColors[msg.confidence]
+                        )}>
+                          {msg.confidence} confidence
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>
@@ -200,7 +255,6 @@ export function DataChat({ analysisId, dataContext, className }: DataChatProps) 
         </AnimatePresence>
       </div>
 
-      {/* ChatGPT-style prompt box */}
       <div className="p-4">
         <div className="flex flex-col rounded-[28px] p-2 shadow-sm transition-colors bg-secondary/50 dark:bg-secondary/30 border">
           <textarea
@@ -209,7 +263,7 @@ export function DataChat({ analysisId, dataContext, className }: DataChatProps) 
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Message..."
+            placeholder="Ask a question about your data..."
             disabled={isLoading}
             className="w-full resize-none border-0 bg-transparent px-3 py-2 text-[14px] text-foreground placeholder:text-muted-foreground focus:ring-0 focus-visible:outline-none min-h-[40px]"
             data-testid="input-chat"

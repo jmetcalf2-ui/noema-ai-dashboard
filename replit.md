@@ -95,9 +95,18 @@ Preferred communication style: Simple, everyday language.
 ### Key Components
 - `Layout.tsx` - Professional sidebar layout with logo and navigation
 - `ChartBuilder.tsx` - Custom chart creation with preview
-- `DataChat.tsx` - AI chat with suggestions and streaming
+- `DataChat.tsx` - AI chat with suggestions, source indicators, and confidence levels
 - `ChartRenderer.tsx` - Vibrant gradient chart styling
 - `ExportMenu.tsx` - Export dropdown for reports and data
-- `AnalysisDetail.tsx` - Tabbed interface with professional data tables
+- `AnalysisDetail.tsx` - Tabbed interface with professional data tables and dataset summary
 - `MetricCard.tsx` - Metric display with uppercase labels
-- `FileUpload.tsx` - Animated upload zone with status feedback
+- `FileUpload.tsx` - Animated upload zone with privacy notice and status feedback
+- `InsightCard.tsx` - Categorized insight display with "Why this matters" context
+- `DatasetSummary.tsx` - Dataset overview with row/column counts, data types, quality flags
+
+### Professional Polish Enhancements (February 2026)
+- **Insight Presentation**: Insights grouped into categories (Key Findings, Trends, Anomalies, Data Quality Notes) with importance ranking and "Why this matters" explanations
+- **Dataset Summary Card**: Row/column counts, detected data types, missing data percentage, quality flags for high missingness, constant columns, duplicate rows
+- **AI Chat Enhancements**: Context-aware suggested prompts, data source indicators showing which columns were used, confidence level indicator (high/medium/low)
+- **Trust Signals**: Privacy notice near file upload ("Your data is processed securely and not used for AI training"), descriptive loading states
+- **Sleek Minimal Homepage**: Flat design with no gradients/shadows, horizontal stats row, side-by-side quick links, clean recent activity list
