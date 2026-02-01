@@ -8,6 +8,8 @@ import Dashboard from "@/pages/Dashboard";
 import FilesPage from "@/pages/FilesPage";
 import AnalysesPage from "@/pages/AnalysesPage";
 import AnalysisDetail from "@/pages/AnalysisDetail";
+import ProjectsPage from "@/pages/ProjectsPage";
+import ProjectDetail from "@/pages/ProjectDetail";
 import Landing from "@/pages/Landing";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/use-auth";
@@ -43,6 +45,8 @@ function Router() {
         <Route path="/files" component={FilesPage} />
         <Route path="/analyses" component={AnalysesPage} />
         <Route path="/analyses/:id" component={AnalysisDetail} />
+        <Route path="/projects" component={ProjectsPage} />
+        <Route path="/projects/:id" component={ProjectDetail} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

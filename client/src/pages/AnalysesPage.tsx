@@ -7,7 +7,8 @@ import {
   Trash2, 
   BarChart3, 
   Search,
-  ArrowUpRight
+  MoreHorizontal,
+  FolderPlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -29,6 +36,7 @@ import {
 } from "@/components/ui/select";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import { AddToProjectModal } from "@/components/AddToProjectModal";
 
 export default function AnalysesPage() {
   const { data: analyses, isLoading } = useAnalyses();
@@ -40,6 +48,8 @@ export default function AnalysesPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedFileId, setSelectedFileId] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [projectModalOpen, setProjectModalOpen] = useState(false);
+  const [selectedAnalysisForProject, setSelectedAnalysisForProject] = useState<{id: number; title: string} | null>(null);
 
   const handleCreate = async () => {
     if (!selectedFileId) return;
@@ -154,39 +164,74 @@ export default function AnalysesPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredAnalyses?.map((analysis: any) => (
-            <Link key={analysis.id} href={`/analyses/${analysis.id}`}>
-              <div 
-                className="group relative bg-card rounded-lg border p-5 hover:bg-accent/50 transition-colors cursor-pointer h-full flex flex-col"
-                data-testid={`analysis-card-${analysis.id}`}
-              >
-                <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={(e) => handleDelete(e, analysis.id)}
-                    data-testid={`button-delete-${analysis.id}`}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
+            <div key={analysis.id} className="relative">
+              <Link href={`/analyses/${analysis.id}`}>
+                <div 
+                  className="group bg-card rounded-lg border p-5 hover:bg-accent/50 transition-colors cursor-pointer h-full flex flex-col"
+                  data-testid={`analysis-card-${analysis.id}`}
+                >
+                  <h3 className="text-[15px] font-medium text-foreground mb-1.5 pr-8">
+                    {analysis.title.replace("Analysis: ", "")}
+                  </h3>
+                  <p className="text-[13px] text-muted-foreground line-clamp-2 mb-4 flex-1">
+                    {analysis.summary}
+                  </p>
 
-                <h3 className="text-[15px] font-medium text-foreground mb-1.5 pr-8">
-                  {analysis.title.replace("Analysis: ", "")}
-                </h3>
-                <p className="text-[13px] text-muted-foreground line-clamp-2 mb-4 flex-1">
-                  {analysis.summary}
-                </p>
-
-                <div className="flex items-center justify-between text-[12px] text-muted-foreground pt-3 border-t">
-                  <span>{new Date(analysis.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
-                  <span className="flex items-center gap-1">
-                    {analysis.charts?.length || 0} charts
-                  </span>
+                  <div className="flex items-center justify-between text-[12px] text-muted-foreground pt-3 border-t">
+                    <span>{new Date(analysis.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                    <span className="flex items-center gap-1">
+                      {analysis.charts?.length || 0} charts
+                    </span>
+                  </div>
                 </div>
+              </Link>
+              
+              <div className="absolute top-3 right-3">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      className="h-8 w-8"
+                      data-testid={`analysis-menu-${analysis.id}`}
+                    >
+                      <MoreHorizontal className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem 
+                      onClick={() => {
+                        setSelectedAnalysisForProject({ id: analysis.id, title: analysis.title.replace("Analysis: ", "") });
+                        setProjectModalOpen(true);
+                      }}
+                      data-testid={`add-to-project-${analysis.id}`}
+                    >
+                      <FolderPlus className="w-4 h-4 mr-2" />
+                      Add to Project
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => handleDelete({ preventDefault: () => {}, stopPropagation: () => {} } as any, analysis.id)}
+                      className="text-destructive"
+                      data-testid={`button-delete-${analysis.id}`}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
+      )}
+
+      {selectedAnalysisForProject && (
+        <AddToProjectModal
+          open={projectModalOpen}
+          onOpenChange={setProjectModalOpen}
+          analysisId={selectedAnalysisForProject.id}
+          analysisTitle={selectedAnalysisForProject.title}
+        />
       )}
     </div>
   );
