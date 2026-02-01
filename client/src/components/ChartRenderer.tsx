@@ -46,10 +46,10 @@ const DonutChart = React.forwardRef<HTMLDivElement, DonutChartProps>(
     {
       data,
       totalValue: propTotalValue,
-      size = 200,
-      strokeWidth = 20,
-      animationDuration = 1,
-      animationDelayPerSegment = 0.05,
+      size = 180,
+      strokeWidth = 24,
+      animationDuration = 0.8,
+      animationDelayPerSegment = 0.04,
       highlightOnHover = true,
       centerContent,
       onSegmentHover,
@@ -98,7 +98,7 @@ const DonutChart = React.forwardRef<HTMLDivElement, DonutChartProps>(
             cy={size / 2}
             r={radius}
             fill="transparent"
-            stroke="hsl(var(--border) / 0.5)"
+            stroke="hsl(var(--border) / 0.4)"
             strokeWidth={strokeWidth}
           />
           
@@ -136,7 +136,7 @@ const DonutChart = React.forwardRef<HTMLDivElement, DonutChartProps>(
                     strokeDashoffset: -strokeDashoffset,
                   }}
                   transition={{
-                    opacity: { duration: 0.3, delay: index * animationDelayPerSegment },
+                    opacity: { duration: 0.2, delay: index * animationDelayPerSegment },
                     strokeDashoffset: {
                       duration: animationDuration,
                       delay: index * animationDelayPerSegment,
@@ -144,15 +144,12 @@ const DonutChart = React.forwardRef<HTMLDivElement, DonutChartProps>(
                     },
                   }}
                   className={cn(
-                    "origin-center transition-transform duration-200",
+                    "origin-center transition-all duration-150",
                     highlightOnHover && "cursor-pointer"
                   )}
                   style={{
-                    filter: isActive
-                      ? `drop-shadow(0px 0px 6px ${segment.color}) brightness(1.1)`
-                      : 'none',
-                    transform: isActive ? 'scale(1.03)' : 'scale(1)',
-                    transition: "filter 0.2s ease-out, transform 0.2s ease-out",
+                    opacity: isActive ? 1 : 0.85,
+                    transform: isActive ? 'scale(1.02)' : 'scale(1)',
                   }}
                   onMouseEnter={() => setHoveredSegment(segment)}
                 />
@@ -189,17 +186,16 @@ type ChartConfigProp = {
   data: any[];
 };
 
-const GRADIENT_COLORS = [
-  { start: "#6366f1", end: "#8b5cf6" },
-  { start: "#06b6d4", end: "#3b82f6" },
-  { start: "#10b981", end: "#14b8a6" },
-  { start: "#f59e0b", end: "#ef4444" },
-  { start: "#ec4899", end: "#8b5cf6" },
+const MONOCHROME_COLORS = [
+  "#1a1a1a",
+  "#404040",
+  "#666666",
+  "#8c8c8c",
+  "#b3b3b3",
 ];
 
-const getGradientColor = (index: number) => {
-  const gradient = GRADIENT_COLORS[index % GRADIENT_COLORS.length];
-  return gradient.start;
+const getMonochromeColor = (index: number) => {
+  return MONOCHROME_COLORS[index % MONOCHROME_COLORS.length];
 };
 
 export function ChartRenderer({ config }: { config: ChartConfigProp }) {
@@ -208,7 +204,7 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
 
   if (!config || !config.data || config.data.length === 0) {
     return (
-      <div className="h-64 flex items-center justify-center text-muted-foreground/60 text-sm">
+      <div className="h-56 flex items-center justify-center text-muted-foreground/50 text-sm">
         No data available
       </div>
     );
@@ -219,7 +215,7 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
   const chartConfig: ChartConfig = {
     [config.dataKey]: {
       label: config.dataKey,
-      color: GRADIENT_COLORS[0].start,
+      color: MONOCHROME_COLORS[0],
     },
   };
 
@@ -228,7 +224,7 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
     if (key) {
       chartConfig[key] = {
         label: key,
-        color: getGradientColor(index),
+        color: getMonochromeColor(index),
       };
     }
   });
@@ -237,43 +233,43 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
     switch (config.type) {
       case "bar":
         return (
-          <ChartContainer config={chartConfig} className="h-[280px] w-full">
+          <ChartContainer config={chartConfig} className="h-[260px] w-full">
             <BarChart
               accessibilityLayer
               data={config.data}
-              margin={{ left: 0, right: 16, top: 20, bottom: 0 }}
+              margin={{ left: 0, right: 12, top: 16, bottom: 0 }}
             >
               <defs>
                 <linearGradient id={`barGradient-${chartId}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={GRADIENT_COLORS[0].start} stopOpacity={1} />
-                  <stop offset="100%" stopColor={GRADIENT_COLORS[0].end} stopOpacity={0.8} />
+                  <stop offset="0%" stopColor="#262626" stopOpacity={1} />
+                  <stop offset="100%" stopColor="#404040" stopOpacity={0.9} />
                 </linearGradient>
               </defs>
-              <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/30" />
+              <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/40" />
               <XAxis
                 dataKey={categoryKey}
                 tickLine={false}
-                tickMargin={12}
+                tickMargin={10}
                 axisLine={false}
-                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-                tickFormatter={(value) => String(value).slice(0, 12)}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 400 }}
+                tickFormatter={(value) => String(value).slice(0, 10)}
               />
               <YAxis 
                 tickLine={false} 
                 axisLine={false} 
                 tickMargin={8}
-                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-                width={40}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 400 }}
+                width={36}
               />
               <ChartTooltip
-                cursor={{ fill: 'hsl(var(--muted)/0.3)', radius: 4 }}
+                cursor={{ fill: 'hsl(var(--muted)/0.25)', radius: 3 }}
                 content={<ChartTooltipContent hideLabel />}
               />
               <Bar
                 dataKey={config.dataKey}
                 fill={`url(#barGradient-${chartId})`}
-                radius={[6, 6, 0, 0]}
-                maxBarSize={50}
+                radius={[4, 4, 0, 0]}
+                maxBarSize={44}
               />
             </BarChart>
           </ChartContainer>
@@ -281,51 +277,45 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
 
       case "line":
         return (
-          <ChartContainer config={chartConfig} className="h-[280px] w-full">
+          <ChartContainer config={chartConfig} className="h-[260px] w-full">
             <LineChart
               accessibilityLayer
               data={config.data}
-              margin={{ left: 0, right: 16, top: 20, bottom: 0 }}
+              margin={{ left: 0, right: 12, top: 16, bottom: 0 }}
             >
-              <defs>
-                <linearGradient id={`lineGradient-${chartId}`} x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor={GRADIENT_COLORS[1].start} />
-                  <stop offset="100%" stopColor={GRADIENT_COLORS[1].end} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/30" />
+              <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/40" />
               <XAxis
                 dataKey={categoryKey}
                 tickLine={false}
                 axisLine={false}
-                tickMargin={12}
-                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-                tickFormatter={(value) => String(value).slice(0, 12)}
+                tickMargin={10}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 400 }}
+                tickFormatter={(value) => String(value).slice(0, 10)}
               />
               <YAxis 
                 tickLine={false} 
                 axisLine={false} 
                 tickMargin={8}
-                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-                width={40}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 400 }}
+                width={36}
               />
               <ChartTooltip
-                cursor={{ stroke: 'hsl(var(--muted-foreground)/0.3)' }}
+                cursor={{ stroke: 'hsl(var(--muted-foreground)/0.2)' }}
                 content={<ChartTooltipContent hideLabel />}
               />
               <Line
                 dataKey={config.dataKey}
                 type="monotone"
-                stroke={`url(#lineGradient-${chartId})`}
-                strokeWidth={3}
+                stroke="#262626"
+                strokeWidth={2}
                 dot={{
-                  fill: GRADIENT_COLORS[1].start,
+                  fill: "#262626",
                   strokeWidth: 0,
-                  r: 4,
+                  r: 3,
                 }}
                 activeDot={{
-                  r: 6,
-                  fill: GRADIENT_COLORS[1].end,
+                  r: 5,
+                  fill: "#1a1a1a",
                   stroke: 'white',
                   strokeWidth: 2,
                 }}
@@ -336,48 +326,44 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
 
       case "area":
         return (
-          <ChartContainer config={chartConfig} className="h-[280px] w-full">
+          <ChartContainer config={chartConfig} className="h-[260px] w-full">
             <AreaChart
               accessibilityLayer
               data={config.data}
-              margin={{ left: 0, right: 16, top: 20, bottom: 0 }}
+              margin={{ left: 0, right: 12, top: 16, bottom: 0 }}
             >
               <defs>
                 <linearGradient id={`areaGradient-${chartId}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={GRADIENT_COLORS[2].start} stopOpacity={0.4} />
-                  <stop offset="100%" stopColor={GRADIENT_COLORS[2].end} stopOpacity={0.05} />
-                </linearGradient>
-                <linearGradient id={`areaStroke-${chartId}`} x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor={GRADIENT_COLORS[2].start} />
-                  <stop offset="100%" stopColor={GRADIENT_COLORS[2].end} />
+                  <stop offset="0%" stopColor="#404040" stopOpacity={0.25} />
+                  <stop offset="100%" stopColor="#666666" stopOpacity={0.02} />
                 </linearGradient>
               </defs>
-              <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/30" />
+              <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/40" />
               <XAxis
                 dataKey={categoryKey}
                 tickLine={false}
                 axisLine={false}
-                tickMargin={12}
-                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-                tickFormatter={(value) => String(value).slice(0, 12)}
+                tickMargin={10}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 400 }}
+                tickFormatter={(value) => String(value).slice(0, 10)}
               />
               <YAxis 
                 tickLine={false} 
                 axisLine={false} 
                 tickMargin={8}
-                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-                width={40}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 400 }}
+                width={36}
               />
               <ChartTooltip
-                cursor={{ stroke: 'hsl(var(--muted-foreground)/0.3)' }}
+                cursor={{ stroke: 'hsl(var(--muted-foreground)/0.2)' }}
                 content={<ChartTooltipContent indicator="line" />}
               />
               <Area
                 dataKey={config.dataKey}
                 type="monotone"
                 fill={`url(#areaGradient-${chartId})`}
-                stroke={`url(#areaStroke-${chartId})`}
-                strokeWidth={2}
+                stroke="#404040"
+                strokeWidth={1.5}
               />
             </AreaChart>
           </ChartContainer>
@@ -385,26 +371,26 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
 
       case "horizontal_bar":
         return (
-          <ChartContainer config={chartConfig} className="h-[280px] w-full">
+          <ChartContainer config={chartConfig} className="h-[260px] w-full">
             <BarChart
               accessibilityLayer
               data={config.data}
               layout="vertical"
-              margin={{ left: 0, right: 24, top: 10, bottom: 10 }}
+              margin={{ left: 0, right: 20, top: 8, bottom: 8 }}
             >
               <defs>
                 <linearGradient id={`hbarGradient-${chartId}`} x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor={GRADIENT_COLORS[3].start} stopOpacity={0.9} />
-                  <stop offset="100%" stopColor={GRADIENT_COLORS[3].end} stopOpacity={1} />
+                  <stop offset="0%" stopColor="#333333" stopOpacity={0.95} />
+                  <stop offset="100%" stopColor="#4a4a4a" stopOpacity={1} />
                 </linearGradient>
               </defs>
-              <CartesianGrid horizontal={false} strokeDasharray="3 3" className="stroke-border/30" />
+              <CartesianGrid horizontal={false} strokeDasharray="3 3" className="stroke-border/40" />
               <XAxis 
                 type="number"
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
-                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 400 }}
               />
               <YAxis
                 dataKey={categoryKey}
@@ -412,19 +398,19 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
-                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-                width={80}
-                tickFormatter={(value) => String(value).slice(0, 12)}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 400 }}
+                width={72}
+                tickFormatter={(value) => String(value).slice(0, 10)}
               />
               <ChartTooltip
-                cursor={{ fill: 'hsl(var(--muted)/0.3)', radius: 4 }}
+                cursor={{ fill: 'hsl(var(--muted)/0.25)', radius: 3 }}
                 content={<ChartTooltipContent hideLabel />}
               />
               <Bar
                 dataKey={config.dataKey}
                 fill={`url(#hbarGradient-${chartId})`}
-                radius={[0, 6, 6, 0]}
-                maxBarSize={32}
+                radius={[0, 4, 4, 0]}
+                maxBarSize={28}
               />
             </BarChart>
           </ChartContainer>
@@ -433,7 +419,7 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
       case "pie":
         const pieData: DonutChartSegment[] = config.data.map((item, index) => ({
           value: item[config.dataKey] || 0,
-          color: getGradientColor(index),
+          color: getMonochromeColor(index),
           label: String(item[categoryKey]),
           ...item,
         }));
@@ -441,20 +427,21 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
         const total = pieData.reduce((acc, curr) => acc + curr.value, 0);
 
         return (
-          <div className="flex flex-col items-center gap-6 py-4">
+          <div className="flex flex-col items-center gap-5 py-3">
             <DonutChart
               data={pieData}
-              size={200}
-              strokeWidth={28}
+              size={180}
+              strokeWidth={24}
               highlightOnHover={true}
               onSegmentHover={setHoveredSegment}
               centerContent={
                 <div className="text-center">
                   <motion.div 
                     key={hoveredSegment?.value || total}
-                    initial={{ scale: 0.8, opacity: 0 }}
+                    initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="text-3xl font-bold tracking-tight"
+                    transition={{ duration: 0.15 }}
+                    className="text-2xl font-medium tracking-tight"
                   >
                     {hoveredSegment
                       ? hoveredSegment.value.toLocaleString()
@@ -464,6 +451,7 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
                     key={hoveredSegment?.label || "Total"}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
+                    transition={{ duration: 0.1 }}
                     className="text-xs text-muted-foreground mt-0.5"
                   >
                     {hoveredSegment ? hoveredSegment.label : "Total"}
@@ -471,25 +459,21 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
                 </div>
               }
             />
-            <div className="flex flex-wrap justify-center gap-4 max-w-xs">
+            <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 max-w-xs">
               {pieData.map((segment, index) => (
-                <motion.div
+                <div
                   key={index}
                   className={cn(
-                    "flex items-center gap-2 text-sm transition-opacity",
-                    hoveredSegment && hoveredSegment.label !== segment.label && "opacity-40"
+                    "flex items-center gap-2 text-sm transition-opacity duration-150",
+                    hoveredSegment && hoveredSegment.label !== segment.label && "opacity-35"
                   )}
-                  whileHover={{ scale: 1.02 }}
                 >
                   <div
-                    className="h-2.5 w-2.5 shrink-0 rounded-full shadow-sm"
-                    style={{ 
-                      backgroundColor: segment.color,
-                      boxShadow: `0 0 8px ${segment.color}40`
-                    }}
+                    className="h-2 w-2 shrink-0 rounded-full"
+                    style={{ backgroundColor: segment.color }}
                   />
                   <span className="text-muted-foreground text-xs">{segment.label}</span>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
@@ -497,42 +481,42 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
 
       default:
         return (
-          <ChartContainer config={chartConfig} className="h-[280px] w-full">
+          <ChartContainer config={chartConfig} className="h-[260px] w-full">
             <BarChart
               accessibilityLayer
               data={config.data}
-              margin={{ left: 0, right: 16, top: 20, bottom: 0 }}
+              margin={{ left: 0, right: 12, top: 16, bottom: 0 }}
             >
               <defs>
                 <linearGradient id={`defaultGradient-${chartId}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={GRADIENT_COLORS[0].start} stopOpacity={1} />
-                  <stop offset="100%" stopColor={GRADIENT_COLORS[0].end} stopOpacity={0.8} />
+                  <stop offset="0%" stopColor="#262626" stopOpacity={1} />
+                  <stop offset="100%" stopColor="#404040" stopOpacity={0.9} />
                 </linearGradient>
               </defs>
-              <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/30" />
+              <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/40" />
               <XAxis
                 dataKey={categoryKey}
                 tickLine={false}
                 axisLine={false}
-                tickMargin={12}
-                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                tickMargin={10}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 400 }}
               />
               <YAxis 
                 tickLine={false} 
                 axisLine={false} 
                 tickMargin={8}
-                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-                width={40}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 400 }}
+                width={36}
               />
               <ChartTooltip
-                cursor={{ fill: 'hsl(var(--muted)/0.3)', radius: 4 }}
+                cursor={{ fill: 'hsl(var(--muted)/0.25)', radius: 3 }}
                 content={<ChartTooltipContent hideLabel />}
               />
               <Bar 
                 dataKey={config.dataKey} 
                 fill={`url(#defaultGradient-${chartId})`} 
-                radius={[6, 6, 0, 0]} 
-                maxBarSize={50}
+                radius={[4, 4, 0, 0]} 
+                maxBarSize={44}
               />
             </BarChart>
           </ChartContainer>
@@ -542,19 +526,19 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
 
   return (
     <motion.div 
-      className="space-y-4" 
+      className="space-y-3" 
       data-testid={`chart-${config.type}`}
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
     >
-      <div className="space-y-1">
-        <h3 className="font-semibold text-base tracking-tight">{config.title}</h3>
+      <div className="space-y-0.5">
+        <h3 className="font-medium text-sm">{config.title}</h3>
         {config.description && (
-          <p className="text-sm text-muted-foreground/80 leading-relaxed">{config.description}</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">{config.description}</p>
         )}
       </div>
-      <div className="rounded-xl border border-border/50 bg-gradient-to-b from-card to-card/80 p-5 shadow-sm backdrop-blur-sm">
+      <div className="rounded-lg border bg-card p-4">
         {renderChart()}
       </div>
     </motion.div>

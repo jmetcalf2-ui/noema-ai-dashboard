@@ -64,12 +64,12 @@ export default function AnalysisDetail() {
     );
 
     return [
-      { label: "Total Records", value: rows.length, icon: <Layers className="w-5 h-5" /> },
-      { label: "Data Columns", value: headers.length, icon: <FileSpreadsheet className="w-5 h-5" /> },
-      { label: "Numeric Fields", value: numericCols.length, icon: <TrendingUp className="w-5 h-5" /> },
-      { label: "Charts Generated", value: (analysis?.charts?.length || 0) + customCharts.length, icon: <BarChart3 className="w-5 h-5" /> },
+      { label: "Records", value: rows.length, icon: <Layers className="w-4 h-4" /> },
+      { label: "Columns", value: headers.length, icon: <FileSpreadsheet className="w-4 h-4" /> },
+      { label: "Numeric", value: numericCols.length, icon: <TrendingUp className="w-4 h-4" /> },
+      { label: "Charts", value: (analysis?.charts?.length || 0) + customCharts.length, icon: <BarChart3 className="w-4 h-4" /> },
     ];
-  }, [fileData, analysis, customCharts]);
+  }, [sanitizedData, analysis, customCharts]);
 
   const handleCustomChart = (config: any) => {
     setCustomCharts((prev) => [...prev, config]);
@@ -78,10 +78,7 @@ export default function AnalysisDetail() {
   if (isLoading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-6 h-6 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Loading analysis...</p>
-        </div>
+        <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -89,7 +86,7 @@ export default function AnalysisDetail() {
   if (error || !analysis) {
     return (
       <div className="flex h-[50vh] flex-col items-center justify-center gap-4">
-        <p className="text-muted-foreground">Analysis not found</p>
+        <p className="text-muted-foreground text-sm">Analysis not found</p>
         <Link href="/analyses">
           <Button variant="outline" size="sm">
             Back to Analyses
@@ -100,23 +97,23 @@ export default function AnalysisDetail() {
   }
 
   return (
-    <div className="min-h-screen pb-16">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
+    <div className="min-h-screen pb-12">
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="flex items-center gap-1.5 py-3 text-xs text-muted-foreground">
           <Link href="/analyses" className="hover:text-foreground transition-colors" data-testid="link-back-analyses">
             Analyses
           </Link>
-          <ChevronRight className="w-3.5 h-3.5" />
-          <span className="text-foreground truncate max-w-[300px]">{analysis.title}</span>
+          <ChevronRight className="w-3 h-3" />
+          <span className="text-foreground truncate max-w-[280px]">{analysis.title}</span>
         </div>
 
-        <header className="pb-6 border-b">
+        <header className="pb-5 border-b">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1 flex-1">
-              <h1 className="text-xl font-semibold tracking-tight" data-testid="text-analysis-title">
+              <h1 className="text-lg font-medium" data-testid="text-analysis-title">
                 {analysis.title.replace("Analysis: ", "")}
               </h1>
-              <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed" data-testid="text-summary">
+              <p className="text-sm text-muted-foreground max-w-xl leading-relaxed" data-testid="text-summary">
                 {analysis.summary}
               </p>
             </div>
@@ -124,7 +121,7 @@ export default function AnalysisDetail() {
           </div>
         </header>
 
-        <div className="grid grid-cols-4 gap-4 py-6">
+        <div className="grid grid-cols-4 gap-3 py-5">
           {metrics.map((metric, idx) => (
             <MetricCard
               key={idx}
@@ -135,28 +132,28 @@ export default function AnalysisDetail() {
           ))}
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="bg-secondary/50">
-            <TabsTrigger value="overview" className="gap-2" data-testid="tab-overview">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-5">
+          <TabsList className="bg-secondary/40 h-9">
+            <TabsTrigger value="overview" className="gap-1.5 text-xs" data-testid="tab-overview">
               <BarChart3 className="w-3.5 h-3.5" />
               Overview
             </TabsTrigger>
-            <TabsTrigger value="insights" className="gap-2" data-testid="tab-insights">
+            <TabsTrigger value="insights" className="gap-1.5 text-xs" data-testid="tab-insights">
               <Lightbulb className="w-3.5 h-3.5" />
               Insights
             </TabsTrigger>
-            <TabsTrigger value="data" className="gap-2" data-testid="tab-data">
+            <TabsTrigger value="data" className="gap-1.5 text-xs" data-testid="tab-data">
               <Table2 className="w-3.5 h-3.5" />
               Data
             </TabsTrigger>
-            <TabsTrigger value="chat" className="gap-2" data-testid="tab-chat">
+            <TabsTrigger value="chat" className="gap-1.5 text-xs" data-testid="tab-chat">
               <MessageSquare className="w-3.5 h-3.5" />
               Ask AI
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-6 mt-0">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <TabsContent value="overview" className="space-y-5 mt-0">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
               {analysis.charts?.map((chartConfig: any, idx: number) => (
                 <ChartRenderer key={`original-${idx}`} config={chartConfig} />
               ))}
@@ -171,24 +168,22 @@ export default function AnalysisDetail() {
           </TabsContent>
 
           <TabsContent value="insights" className="mt-0">
-            <div className="grid gap-4 max-w-3xl">
+            <div className="grid gap-3 max-w-2xl">
               {analysis.insights?.map((insight: string | { insight: string }, idx: number) => {
                 const insightText = typeof insight === "string" ? insight : insight.insight;
                 return (
                   <Card
                     key={idx}
-                    className="p-4 hover:shadow-sm transition-shadow"
+                    className="p-3.5"
                     data-testid={`insight-item-${idx}`}
                   >
-                    <div className="flex gap-4">
-                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                        <Lightbulb className="w-4 h-4 text-primary" />
+                    <div className="flex gap-3">
+                      <div className="w-7 h-7 rounded-md bg-secondary flex items-center justify-center shrink-0">
+                        <Lightbulb className="w-3.5 h-3.5 text-muted-foreground" />
                       </div>
-                      <div className="flex-1">
-                        <p className="text-sm leading-relaxed text-foreground/90">
-                          {insightText}
-                        </p>
-                      </div>
+                      <p className="text-sm leading-relaxed text-foreground/85 pt-0.5">
+                        {insightText}
+                      </p>
                     </div>
                   </Card>
                 );
@@ -199,14 +194,14 @@ export default function AnalysisDetail() {
           <TabsContent value="data" className="mt-0">
             {sanitizedData?.rows ? (
               <Card className="overflow-hidden">
-                <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
+                <div className="overflow-x-auto max-h-[480px] overflow-y-auto">
                   <table className="w-full text-sm">
-                    <thead className="bg-secondary/50 sticky top-0">
+                    <thead className="bg-secondary/40 sticky top-0">
                       <tr>
                         {sanitizedData.headers.map((header: string, idx: number) => (
                           <th
                             key={idx}
-                            className="px-4 py-3 text-left font-medium text-muted-foreground text-xs uppercase tracking-wide whitespace-nowrap"
+                            className="px-3 py-2.5 text-left text-xs text-muted-foreground font-medium whitespace-nowrap"
                           >
                             {header}
                           </th>
@@ -215,9 +210,9 @@ export default function AnalysisDetail() {
                     </thead>
                     <tbody className="divide-y divide-border">
                       {sanitizedData.rows.slice(0, 100).map((row: any, rowIdx: number) => (
-                        <tr key={rowIdx} className="hover:bg-secondary/30 transition-colors">
+                        <tr key={rowIdx} className="hover:bg-secondary/20 transition-colors">
                           {sanitizedData.headers.map((header: string, colIdx: number) => (
-                            <td key={colIdx} className="px-4 py-2.5 whitespace-nowrap">
+                            <td key={colIdx} className="px-3 py-2 whitespace-nowrap text-sm">
                               {row[header] ?? "-"}
                             </td>
                           ))}
@@ -227,21 +222,21 @@ export default function AnalysisDetail() {
                   </table>
                 </div>
                 {sanitizedData.rows.length > 100 && (
-                  <div className="px-4 py-3 bg-secondary/30 text-sm text-muted-foreground border-t">
+                  <div className="px-3 py-2.5 bg-secondary/20 text-xs text-muted-foreground border-t">
                     Showing 100 of {sanitizedData.rows.length} records
                   </div>
                 )}
               </Card>
             ) : (
-              <div className="flex items-center justify-center h-64 text-muted-foreground">
-                <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                Loading data...
+              <div className="flex items-center justify-center h-56 text-muted-foreground">
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                <span className="text-sm">Loading data...</span>
               </div>
             )}
           </TabsContent>
 
           <TabsContent value="chat" className="mt-0">
-            <div className="max-w-2xl">
+            <div className="max-w-xl">
               <DataChat
                 analysisId={id}
                 dataContext={`File: ${analysis.title}, Summary: ${analysis.summary}`}

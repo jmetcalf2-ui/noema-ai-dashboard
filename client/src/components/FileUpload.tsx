@@ -83,10 +83,12 @@ export function FileUpload({ onUploadComplete }: { onUploadComplete?: () => void
 
   if (file) {
     return (
-      <div className="w-full max-w-xl mx-auto space-y-4">
-        <div className="flex items-center justify-between p-4 border rounded-lg bg-secondary/30">
+      <div className="w-full max-w-md mx-auto space-y-3">
+        <div className="flex items-center justify-between p-3.5 border rounded-lg bg-secondary/20">
           <div className="flex items-center gap-3 overflow-hidden">
-            <File className="w-5 h-5 text-muted-foreground shrink-0" />
+            <div className="w-9 h-9 rounded-md bg-secondary flex items-center justify-center shrink-0">
+              <File className="w-4 h-4 text-muted-foreground" />
+            </div>
             <div className="overflow-hidden">
               <p className="text-sm font-medium truncate">{file.name}</p>
               <p className="text-xs text-muted-foreground">
@@ -125,13 +127,13 @@ export function FileUpload({ onUploadComplete }: { onUploadComplete?: () => void
   }
 
   return (
-    <div className="w-full max-w-xl mx-auto">
+    <div className="w-full max-w-md mx-auto">
       <label
         className={cn(
-          "flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-lg cursor-pointer transition-colors",
+          "flex flex-col items-center justify-center py-12 px-6 border border-dashed rounded-lg cursor-pointer transition-all",
           dragActive
-            ? "border-primary bg-primary/5"
-            : "border-border hover:border-primary/50 hover:bg-secondary/30"
+            ? "border-foreground/30 bg-secondary/40"
+            : "border-border hover:border-foreground/20 hover:bg-secondary/20"
         )}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
@@ -146,12 +148,14 @@ export function FileUpload({ onUploadComplete }: { onUploadComplete?: () => void
           accept=".csv,.xlsx,.xls"
           data-testid="file-input"
         />
-        <Upload className="w-8 h-8 text-muted-foreground mb-3" />
-        <p className="text-sm text-muted-foreground">
+        <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center mb-3">
+          <Upload className="w-4 h-4 text-muted-foreground" />
+        </div>
+        <p className="text-sm text-foreground/80">
           Drop a file here or click to browse
         </p>
-        <p className="text-xs text-muted-foreground/70 mt-1">
-          CSV, Excel files up to 5MB
+        <p className="text-xs text-muted-foreground mt-1.5">
+          CSV or Excel, up to 5MB
         </p>
       </label>
     </div>

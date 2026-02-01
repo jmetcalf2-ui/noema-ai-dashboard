@@ -18,10 +18,10 @@ interface ChartBuilderProps {
 }
 
 const CHART_TYPES = [
-  { value: "bar", label: "Bar Chart", icon: BarChart3 },
-  { value: "line", label: "Line Chart", icon: LineChart },
-  { value: "area", label: "Area Chart", icon: AreaChart },
-  { value: "pie", label: "Pie Chart", icon: PieChart },
+  { value: "bar", label: "Bar", icon: BarChart3 },
+  { value: "line", label: "Line", icon: LineChart },
+  { value: "area", label: "Area", icon: AreaChart },
+  { value: "pie", label: "Pie", icon: PieChart },
 ];
 
 export function ChartBuilder({ data, onChartCreate }: ChartBuilderProps) {
@@ -84,13 +84,13 @@ export function ChartBuilder({ data, onChartCreate }: ChartBuilderProps) {
 
   if (!data || data.length === 0 || columns.length === 0) {
     return (
-      <Card className="p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-medium">Custom Chart Builder</h3>
+      <Card className="p-4">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm font-medium">Custom Chart</span>
         </div>
-        <div className="border rounded-lg p-8 bg-secondary/20 text-center">
-          <BarChart3 className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" />
-          <p className="text-sm text-muted-foreground">
+        <div className="border rounded-lg p-6 bg-secondary/10 text-center">
+          <BarChart3 className="w-8 h-8 mx-auto mb-2 text-muted-foreground/30" />
+          <p className="text-xs text-muted-foreground">
             Loading data...
           </p>
         </div>
@@ -99,23 +99,23 @@ export function ChartBuilder({ data, onChartCreate }: ChartBuilderProps) {
   }
 
   return (
-    <Card className="p-5">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-medium">Custom Chart Builder</h3>
+    <Card className="p-4">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-sm font-medium">Custom Chart</span>
         {previewConfig && (
           <Button size="sm" onClick={handleCreate} data-testid="button-create-chart">
-            <Plus className="w-3.5 h-3.5 mr-1.5" />
-            Add Chart
+            <Plus className="w-3.5 h-3.5 mr-1" />
+            Add
           </Button>
         )}
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="space-y-2">
-          <Label className="text-xs">Chart Type</Label>
+      <div className="grid grid-cols-3 gap-3 mb-4">
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">Type</Label>
           <Select value={chartType} onValueChange={setChartType}>
-            <SelectTrigger data-testid="select-chart-type">
-              <SelectValue placeholder="Select type" />
+            <SelectTrigger className="h-9 text-sm" data-testid="select-chart-type">
+              <SelectValue placeholder="Select" />
             </SelectTrigger>
             <SelectContent>
               {CHART_TYPES.map((type) => (
@@ -130,11 +130,11 @@ export function ChartBuilder({ data, onChartCreate }: ChartBuilderProps) {
           </Select>
         </div>
 
-        <div className="space-y-2">
-          <Label className="text-xs">Category (X-Axis)</Label>
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">Category</Label>
           <Select value={categoryKey} onValueChange={setCategoryKey}>
-            <SelectTrigger data-testid="select-category">
-              <SelectValue placeholder="Select column" />
+            <SelectTrigger className="h-9 text-sm" data-testid="select-category">
+              <SelectValue placeholder="Select" />
             </SelectTrigger>
             <SelectContent>
               {columns.map((col) => (
@@ -146,11 +146,11 @@ export function ChartBuilder({ data, onChartCreate }: ChartBuilderProps) {
           </Select>
         </div>
 
-        <div className="space-y-2">
-          <Label className="text-xs">Value (Y-Axis)</Label>
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">Value</Label>
           <Select value={dataKey} onValueChange={setDataKey}>
-            <SelectTrigger data-testid="select-value">
-              <SelectValue placeholder="Select column" />
+            <SelectTrigger className="h-9 text-sm" data-testid="select-value">
+              <SelectValue placeholder="Select" />
             </SelectTrigger>
             <SelectContent>
               {valueColumns.map((col) => (
@@ -164,14 +164,14 @@ export function ChartBuilder({ data, onChartCreate }: ChartBuilderProps) {
       </div>
 
       {previewConfig ? (
-        <div className="border rounded-lg p-4 bg-secondary/20">
+        <div className="border rounded-lg p-3 bg-secondary/10">
           <ChartRenderer config={previewConfig as any} />
         </div>
       ) : (
-        <div className="border rounded-lg p-8 bg-secondary/20 text-center">
-          <BarChart3 className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" />
-          <p className="text-sm text-muted-foreground">
-            Select chart type and columns to preview
+        <div className="border rounded-lg p-6 bg-secondary/10 text-center">
+          <BarChart3 className="w-8 h-8 mx-auto mb-2 text-muted-foreground/30" />
+          <p className="text-xs text-muted-foreground">
+            Select options to preview
           </p>
         </div>
       )}

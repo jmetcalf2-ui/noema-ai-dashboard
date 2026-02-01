@@ -1,6 +1,5 @@
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 
 interface MetricCardProps {
   label: string;
@@ -19,50 +18,25 @@ export function MetricCard({
   icon,
   className,
 }: MetricCardProps) {
-  const trend = change !== undefined ? (change > 0 ? "up" : change < 0 ? "down" : "neutral") : null;
-
   return (
-    <Card className={cn("p-4 hover:shadow-md transition-shadow", className)}>
-      <div className="flex items-start justify-between">
-        <div className="space-y-1">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+    <Card className={cn("p-4", className)}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1.5 min-w-0">
+          <p className="text-xs text-muted-foreground">
             {label}
           </p>
-          <p className="text-2xl font-semibold tracking-tight">
+          <p className="text-xl font-medium tracking-tight">
             {typeof value === "number" ? value.toLocaleString() : value}
           </p>
-          {trend && (
-            <div className="flex items-center gap-1 mt-1">
-              {trend === "up" && (
-                <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
-              )}
-              {trend === "down" && (
-                <TrendingDown className="w-3.5 h-3.5 text-red-500" />
-              )}
-              {trend === "neutral" && (
-                <Minus className="w-3.5 h-3.5 text-muted-foreground" />
-              )}
-              <span
-                className={cn(
-                  "text-xs font-medium",
-                  trend === "up" && "text-emerald-500",
-                  trend === "down" && "text-red-500",
-                  trend === "neutral" && "text-muted-foreground"
-                )}
-              >
-                {change !== undefined && change > 0 && "+"}
-                {change?.toFixed(1)}%
-              </span>
-              {changeLabel && (
-                <span className="text-xs text-muted-foreground">
-                  {changeLabel}
-                </span>
-              )}
-            </div>
+          {change !== undefined && (
+            <p className="text-xs text-muted-foreground">
+              {change > 0 ? "+" : ""}{change.toFixed(1)}%
+              {changeLabel && <span className="ml-1">{changeLabel}</span>}
+            </p>
           )}
         </div>
         {icon && (
-          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+          <div className="w-9 h-9 rounded-md bg-secondary flex items-center justify-center text-muted-foreground shrink-0">
             {icon}
           </div>
         )}

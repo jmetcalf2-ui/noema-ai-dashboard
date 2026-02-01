@@ -36,7 +36,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const recentAnalyses = (analyses || []).slice(0, 5);
 
   const style = {
-    "--sidebar-width": "16rem",
+    "--sidebar-width": "15rem",
     "--sidebar-width-icon": "3rem",
   };
 
@@ -44,8 +44,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <SidebarProvider style={style as React.CSSProperties}>
       <div className="flex h-screen w-full">
         <Sidebar>
-          <SidebarHeader className="border-b h-14 flex items-center px-4">
-            <Link href="/" className="font-semibold text-lg tracking-tight">
+          <SidebarHeader className="h-12 flex items-center px-4 border-b">
+            <Link href="/" className="text-sm font-medium tracking-tight">
               Noema
             </Link>
           </SidebarHeader>
@@ -63,7 +63,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         <SidebarMenuButton asChild isActive={isActive}>
                           <Link href={item.href} data-testid={`nav-${item.label.toLowerCase()}`}>
                             <item.icon className="w-4 h-4" />
-                            <span>{item.label}</span>
+                            <span className="text-sm">{item.label}</span>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -75,8 +75,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
             {recentAnalyses.length > 0 && (
               <SidebarGroup>
-                <SidebarGroupLabel className="flex items-center gap-2">
-                  <Clock className="w-3.5 h-3.5" />
+                <SidebarGroupLabel className="text-xs text-muted-foreground">
                   Recent
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
@@ -91,7 +90,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                               className="truncate"
                               data-testid={`recent-analysis-${analysis.id}`}
                             >
-                              <span className="truncate">
+                              <span className="truncate text-sm">
                                 {analysis.title.replace("Analysis: ", "")}
                               </span>
                             </Link>
@@ -105,18 +104,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
             )}
           </SidebarContent>
 
-          <SidebarFooter className="border-t p-4">
+          <SidebarFooter className="border-t p-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-medium shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-xs text-muted-foreground shrink-0">
                   {user.firstName?.[0] || user.email?.[0] || "U"}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-medium truncate">
+                  <p className="text-sm truncate">
                     {user.firstName || "User"}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {user.email}
                   </p>
                 </div>
               </div>
@@ -132,9 +128,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </Sidebar>
 
         <div className="flex flex-col flex-1 min-w-0">
-          <header className="h-14 border-b flex items-center px-4 lg:hidden">
+          <header className="h-12 border-b flex items-center px-4 lg:hidden">
             <SidebarTrigger data-testid="button-sidebar-toggle" />
-            <Link href="/" className="font-semibold text-lg ml-3">
+            <Link href="/" className="text-sm font-medium ml-3">
               Noema
             </Link>
           </header>
