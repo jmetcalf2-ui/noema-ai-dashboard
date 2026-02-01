@@ -186,16 +186,16 @@ type ChartConfigProp = {
   data: any[];
 };
 
-const MONOCHROME_COLORS = [
-  "#1a1a1a",
-  "#404040",
-  "#666666",
-  "#8c8c8c",
-  "#b3b3b3",
+const CHART_COLORS = [
+  "#6366f1",
+  "#8b5cf6", 
+  "#a855f7",
+  "#d946ef",
+  "#ec4899",
 ];
 
-const getMonochromeColor = (index: number) => {
-  return MONOCHROME_COLORS[index % MONOCHROME_COLORS.length];
+const getChartColor = (index: number) => {
+  return CHART_COLORS[index % CHART_COLORS.length];
 };
 
 export function ChartRenderer({ config }: { config: ChartConfigProp }) {
@@ -215,7 +215,7 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
   const chartConfig: ChartConfig = {
     [config.dataKey]: {
       label: config.dataKey,
-      color: MONOCHROME_COLORS[0],
+      color: CHART_COLORS[0],
     },
   };
 
@@ -224,7 +224,7 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
     if (key) {
       chartConfig[key] = {
         label: key,
-        color: getMonochromeColor(index),
+        color: getChartColor(index),
       };
     }
   });
@@ -241,8 +241,8 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
             >
               <defs>
                 <linearGradient id={`barGradient-${chartId}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#262626" stopOpacity={1} />
-                  <stop offset="100%" stopColor="#404040" stopOpacity={0.9} />
+                  <stop offset="0%" stopColor="#6366f1" stopOpacity={1} />
+                  <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.85} />
                 </linearGradient>
               </defs>
               <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/40" />
@@ -283,6 +283,12 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
               data={config.data}
               margin={{ left: 0, right: 12, top: 16, bottom: 0 }}
             >
+              <defs>
+                <linearGradient id={`lineGradient-${chartId}`} x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="#06b6d4" />
+                  <stop offset="100%" stopColor="#3b82f6" />
+                </linearGradient>
+              </defs>
               <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/40" />
               <XAxis
                 dataKey={categoryKey}
@@ -306,16 +312,16 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
               <Line
                 dataKey={config.dataKey}
                 type="monotone"
-                stroke="#262626"
-                strokeWidth={2}
+                stroke={`url(#lineGradient-${chartId})`}
+                strokeWidth={2.5}
                 dot={{
-                  fill: "#262626",
+                  fill: "#06b6d4",
                   strokeWidth: 0,
                   r: 3,
                 }}
                 activeDot={{
                   r: 5,
-                  fill: "#1a1a1a",
+                  fill: "#3b82f6",
                   stroke: 'white',
                   strokeWidth: 2,
                 }}
@@ -334,8 +340,8 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
             >
               <defs>
                 <linearGradient id={`areaGradient-${chartId}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#404040" stopOpacity={0.25} />
-                  <stop offset="100%" stopColor="#666666" stopOpacity={0.02} />
+                  <stop offset="0%" stopColor="#10b981" stopOpacity={0.35} />
+                  <stop offset="100%" stopColor="#14b8a6" stopOpacity={0.05} />
                 </linearGradient>
               </defs>
               <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/40" />
@@ -362,8 +368,8 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
                 dataKey={config.dataKey}
                 type="monotone"
                 fill={`url(#areaGradient-${chartId})`}
-                stroke="#404040"
-                strokeWidth={1.5}
+                stroke="#10b981"
+                strokeWidth={2}
               />
             </AreaChart>
           </ChartContainer>
@@ -380,8 +386,8 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
             >
               <defs>
                 <linearGradient id={`hbarGradient-${chartId}`} x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#333333" stopOpacity={0.95} />
-                  <stop offset="100%" stopColor="#4a4a4a" stopOpacity={1} />
+                  <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.95} />
+                  <stop offset="100%" stopColor="#f97316" stopOpacity={1} />
                 </linearGradient>
               </defs>
               <CartesianGrid horizontal={false} strokeDasharray="3 3" className="stroke-border/40" />
@@ -419,7 +425,7 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
       case "pie":
         const pieData: DonutChartSegment[] = config.data.map((item, index) => ({
           value: item[config.dataKey] || 0,
-          color: getMonochromeColor(index),
+          color: getChartColor(index),
           label: String(item[categoryKey]),
           ...item,
         }));
@@ -489,8 +495,8 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
             >
               <defs>
                 <linearGradient id={`defaultGradient-${chartId}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#262626" stopOpacity={1} />
-                  <stop offset="100%" stopColor="#404040" stopOpacity={0.9} />
+                  <stop offset="0%" stopColor="#6366f1" stopOpacity={1} />
+                  <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.85} />
                 </linearGradient>
               </defs>
               <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/40" />
