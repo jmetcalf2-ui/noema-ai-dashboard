@@ -76,24 +76,42 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
       // AI Analysis
       const prompt = `
-        You are a data analyst. Analyze this dataset (CSV content below).
-        Dataset Name: ${file.fileName}
-        
-        CSV Content (truncated to first ~100 lines if too long):
-        ${file.content?.slice(0, 15000)}
-        
-        Provide the following in JSON format:
-        1. "summary": A professional executive summary of what this data represents (2-3 sentences).
-        2. "insights": An array of 3-5 key actionable insights or trends found in the data.
-        3. "charts": An array of 2-3 chart configurations to visualize interesting trends. 
-           Each chart object must have:
-           - "type": "bar", "line", "area", or "pie"
-           - "title": string description of the chart
-           - "xAxisKey": string (the key for the X axis, usually a name or date column)
-           - "dataKey": string (the key for the numerical value to plot)
-           - "data": array of objects with keys corresponding to xAxisKey and dataKey. LIMIT to 20 data points maximum for readability. Aggregating data if necessary.
-        
-        Ensure the JSON is valid. Only return the JSON object.
+You are a data analyst. Analyze this CSV dataset and generate visualizations.
+
+Dataset: ${file.fileName}
+CSV Content (first ~15000 chars):
+${file.content?.slice(0, 15000)}
+
+Return ONLY valid JSON with this exact structure:
+{
+  "summary": "2-3 sentence executive summary of what this data represents",
+  "insights": ["insight 1", "insight 2", "insight 3"],
+  "charts": [
+    {
+      "type": "bar|line|pie|area",
+      "title": "Chart Title",
+      "categoryKey": "CategoryFieldName",
+      "dataKey": "NumericFieldName", 
+      "data": [{"CategoryFieldName": "value", "NumericFieldName": 123}, ...]
+    }
+  ]
+}
+
+CHART TYPE SELECTION RULES:
+- "bar": Use for comparing categories (e.g., counts by type, totals by region). Best for discrete categories.
+- "pie": Use ONLY for showing parts of a whole (percentages/proportions). Max 6-8 slices.
+- "line": Use for trends over time or continuous data. Requires ordered x-axis values.
+- "area": Use for cumulative totals or trends with emphasis on magnitude.
+
+CRITICAL REQUIREMENTS:
+1. Each chart MUST have: type, title, categoryKey, dataKey, and data array
+2. "categoryKey" is the field name for labels/categories (x-axis or pie slices)
+3. "dataKey" is the field name for numeric values (y-axis or pie values)
+4. data array: Each object must have keys matching categoryKey and dataKey exactly
+5. Maximum 15 data points per chart. Aggregate if needed.
+6. insights must be plain strings, not objects
+
+Generate 2-3 charts that best visualize the most interesting patterns in this data.
       `;
 
       console.log("Starting AI analysis for file:", file.id);

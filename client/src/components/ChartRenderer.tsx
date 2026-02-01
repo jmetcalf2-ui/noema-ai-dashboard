@@ -10,16 +10,11 @@ import {
   Area,
   AreaChart,
   LineChart,
-  Line
+  Line,
+  ResponsiveContainer,
+  Tooltip,
+  Legend
 } from 'recharts';
-import { 
-  ChartContainer, 
-  ChartTooltip, 
-  ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
-  type ChartConfig 
-} from '@/components/ui/chart';
 
 type ChartConfigProp = {
   type: 'bar' | 'line' | 'pie' | 'area';
@@ -29,7 +24,6 @@ type ChartConfigProp = {
   categoryKey?: string;
   xAxisKey?: string;
   data: any[];
-  colors?: string[];
 };
 
 const CHART_COLORS = [
@@ -54,30 +48,13 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
 
   const categoryKey = config.categoryKey || config.xAxisKey || 'name';
 
-  const chartConfig: ChartConfig = {
-    [config.dataKey]: {
-      label: config.dataKey,
-      color: CHART_COLORS[0],
-    },
-  };
-
-  config.data.forEach((item, index) => {
-    const key = item[categoryKey];
-    if (key) {
-      chartConfig[key] = {
-        label: key,
-        color: CHART_COLORS[index % CHART_COLORS.length],
-      };
-    }
-  });
-
   const renderChart = () => {
     switch (config.type) {
       case 'bar':
         return (
-          <ChartContainer config={chartConfig} className="h-[300px] w-full">
+          <ResponsiveContainer width="100%" height={300}>
             <BarChart data={config.data} margin={{ top: 20, right: 20, left: 0, bottom: 60 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border/50" />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
               <XAxis 
                 dataKey={categoryKey} 
                 tickLine={false} 
@@ -87,6 +64,7 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
                 textAnchor="end"
                 height={60}
                 interval={0}
+                tick={{ fill: 'hsl(var(--muted-foreground))' }}
               />
               <YAxis 
                 tickLine={false} 
@@ -94,8 +72,16 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
                 fontSize={11}
                 width={50}
                 tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value}
+                tick={{ fill: 'hsl(var(--muted-foreground))' }}
               />
-              <ChartTooltip content={<ChartTooltipContent />} />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'hsl(var(--background))', 
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '8px',
+                  fontSize: '12px'
+                }}
+              />
               <Bar 
                 dataKey={config.dataKey} 
                 fill={CHART_COLORS[0]}
@@ -103,27 +89,36 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
                 maxBarSize={40}
               />
             </BarChart>
-          </ChartContainer>
+          </ResponsiveContainer>
         );
 
       case 'line':
         return (
-          <ChartContainer config={chartConfig} className="h-[300px] w-full">
+          <ResponsiveContainer width="100%" height={300}>
             <LineChart data={config.data} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border/50" />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
               <XAxis 
                 dataKey={categoryKey} 
                 tickLine={false} 
                 axisLine={false}
                 fontSize={11}
+                tick={{ fill: 'hsl(var(--muted-foreground))' }}
               />
               <YAxis 
                 tickLine={false} 
                 axisLine={false}
                 fontSize={11}
                 width={50}
+                tick={{ fill: 'hsl(var(--muted-foreground))' }}
               />
-              <ChartTooltip content={<ChartTooltipContent />} />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'hsl(var(--background))', 
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '8px',
+                  fontSize: '12px'
+                }}
+              />
               <Line 
                 type="monotone"
                 dataKey={config.dataKey} 
@@ -133,47 +128,56 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
                 activeDot={{ r: 6 }}
               />
             </LineChart>
-          </ChartContainer>
+          </ResponsiveContainer>
         );
 
       case 'area':
         return (
-          <ChartContainer config={chartConfig} className="h-[300px] w-full">
+          <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={config.data} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
               <defs>
-                <linearGradient id={`fill-${config.title}`} x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id={`fill-${config.title?.replace(/\s/g, '-')}`} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor={CHART_COLORS[1]} stopOpacity={0.3} />
                   <stop offset="95%" stopColor={CHART_COLORS[1]} stopOpacity={0.05} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border/50" />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
               <XAxis 
                 dataKey={categoryKey} 
                 tickLine={false} 
                 axisLine={false}
                 fontSize={11}
+                tick={{ fill: 'hsl(var(--muted-foreground))' }}
               />
               <YAxis 
                 tickLine={false} 
                 axisLine={false}
                 fontSize={11}
                 width={50}
+                tick={{ fill: 'hsl(var(--muted-foreground))' }}
               />
-              <ChartTooltip content={<ChartTooltipContent />} />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'hsl(var(--background))', 
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '8px',
+                  fontSize: '12px'
+                }}
+              />
               <Area 
                 type="monotone"
                 dataKey={config.dataKey} 
                 stroke={CHART_COLORS[1]}
                 strokeWidth={2}
-                fill={`url(#fill-${config.title})`}
+                fill={`url(#fill-${config.title?.replace(/\s/g, '-')})`}
               />
             </AreaChart>
-          </ChartContainer>
+          </ResponsiveContainer>
         );
 
       case 'pie':
         return (
-          <ChartContainer config={chartConfig} className="h-[300px] w-full">
+          <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
                 data={config.data}
@@ -184,8 +188,10 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
                 paddingAngle={2}
                 dataKey={config.dataKey}
                 nameKey={categoryKey}
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                labelLine={false}
               >
-                {config.data.map((entry: any, index: number) => (
+                {config.data.map((_entry: any, index: number) => (
                   <Cell 
                     key={`cell-${index}`} 
                     fill={CHART_COLORS[index % CHART_COLORS.length]}
@@ -193,17 +199,26 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
                   />
                 ))}
               </Pie>
-              <ChartTooltip content={<ChartTooltipContent nameKey={categoryKey} />} />
-              <ChartLegend content={<ChartLegendContent nameKey={categoryKey} />} />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'hsl(var(--background))', 
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '8px',
+                  fontSize: '12px'
+                }}
+              />
+              <Legend 
+                wrapperStyle={{ fontSize: '12px' }}
+              />
             </PieChart>
-          </ChartContainer>
+          </ResponsiveContainer>
         );
 
       default:
         return (
-          <ChartContainer config={chartConfig} className="h-[300px] w-full">
+          <ResponsiveContainer width="100%" height={300}>
             <BarChart data={config.data} margin={{ top: 20, right: 20, left: 0, bottom: 60 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border/50" />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
               <XAxis 
                 dataKey={categoryKey} 
                 tickLine={false} 
@@ -212,14 +227,23 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
                 angle={-45}
                 textAnchor="end"
                 height={60}
+                tick={{ fill: 'hsl(var(--muted-foreground))' }}
               />
               <YAxis 
                 tickLine={false} 
                 axisLine={false}
                 fontSize={11}
                 width={50}
+                tick={{ fill: 'hsl(var(--muted-foreground))' }}
               />
-              <ChartTooltip content={<ChartTooltipContent />} />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'hsl(var(--background))', 
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '8px',
+                  fontSize: '12px'
+                }}
+              />
               <Bar 
                 dataKey={config.dataKey} 
                 fill={CHART_COLORS[0]}
@@ -227,13 +251,13 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
                 maxBarSize={40}
               />
             </BarChart>
-          </ChartContainer>
+          </ResponsiveContainer>
         );
     }
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" data-testid={`chart-${config.type}`}>
       <div>
         <h3 className="font-medium text-base">{config.title}</h3>
         {config.description && (
