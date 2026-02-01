@@ -37,7 +37,7 @@ export default function Dashboard() {
       {/* Row 1: Welcome + Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Welcome Card */}
-        <Card className="lg:col-span-2 p-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+        <Card className="lg:col-span-2 p-6 bg-gradient-to-br from-violet-50 to-indigo-50 dark:from-violet-950/30 dark:to-indigo-950/30 border-violet-200/50 dark:border-violet-800/30">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold text-foreground mb-2">Welcome back</h1>
@@ -45,8 +45,8 @@ export default function Dashboard() {
                 Upload your data and let AI discover patterns, generate charts, and surface insights.
               </p>
             </div>
-            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-              <Zap className="w-6 h-6 text-primary" />
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shrink-0 shadow-lg shadow-violet-500/20">
+              <Zap className="w-5 h-5 text-white" />
             </div>
           </div>
         </Card>
@@ -55,22 +55,22 @@ export default function Dashboard() {
         <Card className="p-5">
           <div className="grid grid-cols-3 gap-4 h-full">
             <div className="flex flex-col items-center justify-center text-center">
-              <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mb-2">
-                <BarChart3 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mb-2 shadow-md shadow-indigo-500/20">
+                <BarChart3 className="w-4 h-4 text-white" />
               </div>
               <p className="text-2xl font-semibold tabular-nums">{analyses?.length || 0}</p>
               <p className="text-[11px] text-muted-foreground">Analyses</p>
             </div>
             <div className="flex flex-col items-center justify-center text-center">
-              <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-2">
-                <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mb-2 shadow-md shadow-emerald-500/20">
+                <TrendingUp className="w-4 h-4 text-white" />
               </div>
               <p className="text-2xl font-semibold tabular-nums">{totalCharts}</p>
               <p className="text-[11px] text-muted-foreground">Charts</p>
             </div>
             <div className="flex flex-col items-center justify-center text-center">
-              <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mb-2">
-                <FileText className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center mb-2 shadow-md shadow-amber-500/20">
+                <FileText className="w-4 h-4 text-white" />
               </div>
               <p className="text-2xl font-semibold tabular-nums">{files?.length || 0}</p>
               <p className="text-[11px] text-muted-foreground">Files</p>
@@ -95,18 +95,28 @@ export default function Dashboard() {
         {/* Quick Actions */}
         <Card className="p-5 flex flex-col">
           <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-4">Quick Actions</p>
-          <div className="space-y-2 flex-1">
+          <div className="space-y-3 flex-1">
             <Link href="/analyses">
-              <Button variant="outline" size="sm" className="w-full justify-start gap-2" data-testid="button-view-analyses">
-                <BarChart3 className="w-4 h-4" />
-                View Analyses
-              </Button>
+              <div className="flex items-center gap-3 p-3 rounded-xl border hover:bg-accent/50 transition-colors cursor-pointer" data-testid="button-view-analyses">
+                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-sm">
+                  <BarChart3 className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-[13px] font-medium">View Analyses</p>
+                  <p className="text-[11px] text-muted-foreground">Browse your reports</p>
+                </div>
+              </div>
             </Link>
             <Link href="/files">
-              <Button variant="outline" size="sm" className="w-full justify-start gap-2" data-testid="button-manage-files">
-                <FolderOpen className="w-4 h-4" />
-                Manage Files
-              </Button>
+              <div className="flex items-center gap-3 p-3 rounded-xl border hover:bg-accent/50 transition-colors cursor-pointer" data-testid="button-manage-files">
+                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-sm">
+                  <FolderOpen className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-[13px] font-medium">Manage Files</p>
+                  <p className="text-[11px] text-muted-foreground">Organize your data</p>
+                </div>
+              </div>
             </Link>
           </div>
         </Card>
