@@ -45,11 +45,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <div className="flex h-screen w-full">
         <Sidebar>
           <SidebarHeader className="h-14 flex items-center px-5 border-b border-sidebar-border">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-foreground flex items-center justify-center">
-                <BarChart3 className="w-3.5 h-3.5 text-background" />
-              </div>
-              <span className="font-medium text-[15px] tracking-tight">Noema</span>
+            <Link href="/" data-testid="link-logo">
+              <span className="text-[18px] font-semibold tracking-tight text-foreground">Noema</span>
             </Link>
           </SidebarHeader>
 

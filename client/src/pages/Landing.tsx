@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { BarChart3, Sparkles, FileSpreadsheet, TrendingUp } from "lucide-react";
+import { Sparkles, FileSpreadsheet, BarChart3 } from "lucide-react";
 
 export default function Landing() {
   const features = [
@@ -24,12 +24,7 @@ export default function Landing() {
     <div className="min-h-screen bg-background flex flex-col">
       <header className="border-b">
         <div className="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-foreground flex items-center justify-center">
-              <BarChart3 className="w-3.5 h-3.5 text-background" />
-            </div>
-            <span className="font-medium text-[15px]">Noema</span>
-          </div>
+          <span className="text-[18px] font-semibold tracking-tight text-foreground">Noema</span>
           <a href="/api/login">
             <Button variant="ghost" size="sm" data-testid="button-login">
               Log in
