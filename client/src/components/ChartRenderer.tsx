@@ -1,20 +1,28 @@
+"use client"
+
 import { 
-  BarChart, 
   Bar, 
-  XAxis, 
-  YAxis, 
+  BarChart,
   CartesianGrid, 
-  PieChart,
-  Pie,
-  Cell,
+  XAxis, 
+  YAxis,
+  Line,
+  LineChart,
   Area,
   AreaChart,
-  LineChart,
-  Line,
-  ResponsiveContainer,
-  Tooltip,
-  Legend
+  Pie,
+  PieChart,
+  Label,
+  LabelList
 } from 'recharts';
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+} from "@/components/ui/chart"
 
 type ChartConfigProp = {
   type: 'bar' | 'line' | 'pie' | 'area';
@@ -25,17 +33,6 @@ type ChartConfigProp = {
   xAxisKey?: string;
   data: any[];
 };
-
-const CHART_COLORS = [
-  'hsl(221, 83%, 53%)',
-  'hsl(160, 60%, 45%)',
-  'hsl(43, 96%, 56%)',
-  'hsl(0, 84%, 60%)',
-  'hsl(262, 83%, 58%)',
-  'hsl(330, 81%, 60%)',
-  'hsl(187, 85%, 43%)',
-  'hsl(142, 71%, 45%)',
-];
 
 export function ChartRenderer({ config }: { config: ChartConfigProp }) {
   if (!config || !config.data || config.data.length === 0) {
@@ -48,210 +45,235 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
 
   const categoryKey = config.categoryKey || config.xAxisKey || 'name';
 
+  const chartConfig: ChartConfig = {
+    [config.dataKey]: {
+      label: config.dataKey,
+      color: "hsl(var(--chart-1))",
+    },
+  };
+
+  config.data.forEach((item, index) => {
+    const key = String(item[categoryKey]);
+    if (key) {
+      chartConfig[key] = {
+        label: key,
+        color: `hsl(var(--chart-${(index % 5) + 1}))`,
+      };
+    }
+  });
+
   const renderChart = () => {
     switch (config.type) {
       case 'bar':
         return (
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={config.data} margin={{ top: 20, right: 20, left: 0, bottom: 60 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
+          <ChartContainer config={chartConfig}>
+            <BarChart 
+              accessibilityLayer 
+              data={config.data}
+              margin={{ left: 12, right: 12 }}
+            >
+              <CartesianGrid vertical={false} />
               <XAxis 
                 dataKey={categoryKey} 
                 tickLine={false} 
+                tickMargin={10}
                 axisLine={false}
-                fontSize={11}
-                angle={-45}
-                textAnchor="end"
-                height={60}
-                interval={0}
-                tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                tickFormatter={(value) => String(value).slice(0, 10)}
               />
               <YAxis 
                 tickLine={false} 
                 axisLine={false}
-                fontSize={11}
-                width={50}
-                tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value}
-                tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                tickMargin={8}
               />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'hsl(var(--background))', 
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                  fontSize: '12px'
-                }}
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent hideLabel />}
               />
               <Bar 
                 dataKey={config.dataKey} 
-                fill={CHART_COLORS[0]}
-                radius={[4, 4, 0, 0]} 
-                maxBarSize={40}
-              />
+                fill="var(--color-desktop)" 
+                radius={8}
+              >
+                {config.data.map((entry, index) => (
+                  <LabelList
+                    key={index}
+                    dataKey={config.dataKey}
+                    position="top"
+                    className="fill-foreground"
+                    fontSize={12}
+                  />
+                ))}
+              </Bar>
             </BarChart>
-          </ResponsiveContainer>
+          </ChartContainer>
         );
 
       case 'line':
         return (
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={config.data} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
+          <ChartContainer config={chartConfig}>
+            <LineChart 
+              accessibilityLayer 
+              data={config.data}
+              margin={{ left: 12, right: 12 }}
+            >
+              <CartesianGrid vertical={false} />
               <XAxis 
                 dataKey={categoryKey} 
                 tickLine={false} 
                 axisLine={false}
-                fontSize={11}
-                tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                tickMargin={8}
+                tickFormatter={(value) => String(value).slice(0, 10)}
               />
               <YAxis 
                 tickLine={false} 
                 axisLine={false}
-                fontSize={11}
-                width={50}
-                tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                tickMargin={8}
               />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'hsl(var(--background))', 
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                  fontSize: '12px'
-                }}
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent hideLabel />}
               />
               <Line 
-                type="monotone"
                 dataKey={config.dataKey} 
-                stroke={CHART_COLORS[0]}
+                type="natural"
+                stroke="var(--color-desktop)"
                 strokeWidth={2}
-                dot={{ r: 4, fill: CHART_COLORS[0] }}
-                activeDot={{ r: 6 }}
+                dot={{
+                  fill: "var(--color-desktop)",
+                }}
+                activeDot={{
+                  r: 6,
+                }}
               />
             </LineChart>
-          </ResponsiveContainer>
+          </ChartContainer>
         );
 
       case 'area':
         return (
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={config.data} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
-              <defs>
-                <linearGradient id={`fill-${config.title?.replace(/\s/g, '-')}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={CHART_COLORS[1]} stopOpacity={0.3} />
-                  <stop offset="95%" stopColor={CHART_COLORS[1]} stopOpacity={0.05} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
+          <ChartContainer config={chartConfig}>
+            <AreaChart 
+              accessibilityLayer 
+              data={config.data}
+              margin={{ left: 12, right: 12 }}
+            >
+              <CartesianGrid vertical={false} />
               <XAxis 
                 dataKey={categoryKey} 
                 tickLine={false} 
                 axisLine={false}
-                fontSize={11}
-                tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                tickMargin={8}
+                tickFormatter={(value) => String(value).slice(0, 10)}
               />
               <YAxis 
                 tickLine={false} 
                 axisLine={false}
-                fontSize={11}
-                width={50}
-                tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                tickMargin={8}
               />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'hsl(var(--background))', 
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                  fontSize: '12px'
-                }}
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent indicator="line" />}
               />
-              <Area 
-                type="monotone"
-                dataKey={config.dataKey} 
-                stroke={CHART_COLORS[1]}
-                strokeWidth={2}
-                fill={`url(#fill-${config.title?.replace(/\s/g, '-')})`}
+              <Area
+                dataKey={config.dataKey}
+                type="natural"
+                fill="var(--color-desktop)"
+                fillOpacity={0.4}
+                stroke="var(--color-desktop)"
               />
             </AreaChart>
-          </ResponsiveContainer>
+          </ChartContainer>
         );
 
       case 'pie':
+        const total = config.data.reduce((acc, curr) => acc + (curr[config.dataKey] || 0), 0);
+        
         return (
-          <ResponsiveContainer width="100%" height={300}>
+          <ChartContainer
+            config={chartConfig}
+            className="mx-auto aspect-square max-h-[300px]"
+          >
             <PieChart>
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent hideLabel />}
+              />
               <Pie
                 data={config.data}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={100}
-                paddingAngle={2}
                 dataKey={config.dataKey}
                 nameKey={categoryKey}
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                labelLine={false}
+                innerRadius={60}
+                strokeWidth={5}
               >
-                {config.data.map((_entry: any, index: number) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={CHART_COLORS[index % CHART_COLORS.length]}
-                    stroke="none"
-                  />
-                ))}
+                <Label
+                  content={({ viewBox }) => {
+                    if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                      return (
+                        <text
+                          x={viewBox.cx}
+                          y={viewBox.cy}
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                        >
+                          <tspan
+                            x={viewBox.cx}
+                            y={viewBox.cy}
+                            className="fill-foreground text-3xl font-bold"
+                          >
+                            {total.toLocaleString()}
+                          </tspan>
+                          <tspan
+                            x={viewBox.cx}
+                            y={(viewBox.cy || 0) + 24}
+                            className="fill-muted-foreground"
+                          >
+                            Total
+                          </tspan>
+                        </text>
+                      )
+                    }
+                  }}
+                />
               </Pie>
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'hsl(var(--background))', 
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                  fontSize: '12px'
-                }}
-              />
-              <Legend 
-                wrapperStyle={{ fontSize: '12px' }}
+              <ChartLegend
+                content={<ChartLegendContent nameKey={categoryKey} />}
+                className="-translate-y-2 flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
               />
             </PieChart>
-          </ResponsiveContainer>
+          </ChartContainer>
         );
 
       default:
         return (
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={config.data} margin={{ top: 20, right: 20, left: 0, bottom: 60 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
+          <ChartContainer config={chartConfig}>
+            <BarChart 
+              accessibilityLayer 
+              data={config.data}
+              margin={{ left: 12, right: 12 }}
+            >
+              <CartesianGrid vertical={false} />
               <XAxis 
                 dataKey={categoryKey} 
                 tickLine={false} 
                 axisLine={false}
-                fontSize={11}
-                angle={-45}
-                textAnchor="end"
-                height={60}
-                tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                tickMargin={10}
               />
               <YAxis 
                 tickLine={false} 
                 axisLine={false}
-                fontSize={11}
-                width={50}
-                tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                tickMargin={8}
               />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'hsl(var(--background))', 
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                  fontSize: '12px'
-                }}
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent hideLabel />}
               />
               <Bar 
                 dataKey={config.dataKey} 
-                fill={CHART_COLORS[0]}
-                radius={[4, 4, 0, 0]} 
-                maxBarSize={40}
+                fill="var(--color-desktop)" 
+                radius={8}
               />
             </BarChart>
-          </ResponsiveContainer>
+          </ChartContainer>
         );
     }
   };
