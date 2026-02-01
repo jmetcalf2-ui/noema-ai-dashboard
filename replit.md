@@ -110,3 +110,15 @@ Preferred communication style: Simple, everyday language.
 - **AI Chat Enhancements**: Context-aware suggested prompts, data source indicators showing which columns were used, confidence level indicator (high/medium/low)
 - **Trust Signals**: Privacy notice near file upload ("Your data is processed securely and not used for AI training"), descriptive loading states
 - **Sleek Minimal Homepage**: Flat design with no gradients/shadows, horizontal stats row, side-by-side quick links, clean recent activity list
+
+### Projects Feature (February 2026)
+- **Projects**: Users can group multiple analyses together into projects for cross-cutting analysis
+- **Database**: projects table with userId, name, description, summary, insights (JSONB), createdAt, updatedAt; project_analyses junction table for many-to-many relationship
+- **AI Cross-Analysis Insights**: When a project has 2+ analyses, AI generates insights connecting patterns across datasets that wouldn't be visible individually
+- **Key Components**:
+  - `ProjectsPage.tsx` - Lists all user projects with descriptions and analysis counts
+  - `ProjectDetail.tsx` - Shows project summary, AI insights, and contained analyses with add/remove capabilities
+  - `AddToProjectModal.tsx` - Modal for adding analyses to existing or new projects
+  - `use-projects.ts` - TanStack Query hooks for project CRUD operations
+- **Navigation**: Projects tab added to sidebar between Analyses and Files
+- **Analyses Page**: 3-dot menu on each analysis card with "Add to Project" and "Delete" options
