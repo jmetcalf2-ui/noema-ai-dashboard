@@ -1,14 +1,18 @@
 import { useCallback, useState } from "react";
 import { Upload, File, Loader2, X } from "lucide-react";
 import { useUploadFile } from "@/hooks/use-files";
+import { useCreateAnalysis } from "@/hooks/use-analyses";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
+import { useLocation } from "wouter";
 
 export function FileUpload({ onUploadComplete }: { onUploadComplete?: () => void }) {
   const [dragActive, setDragActive] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const uploadMutation = useUploadFile();
+  const analyzeMutation = useCreateAnalysis();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -43,21 +47,32 @@ export function FileUpload({ onUploadComplete }: { onUploadComplete?: () => void
     formData.append("file", file);
 
     try {
-      await uploadMutation.mutateAsync(formData);
+      const uploadedFile = await uploadMutation.mutateAsync(formData);
+      toast({
+        title: "File Uploaded",
+        description: "Analyzing your data...",
+      });
+      
+      const analysis = await analyzeMutation.mutateAsync({ fileId: uploadedFile.id });
+      
       toast({
         title: "Success",
-        description: "File uploaded successfully.",
+        description: "Analysis completed successfully.",
       });
+      
       setFile(null);
       onUploadComplete?.();
+      setLocation(`/analyses/${analysis.id}`);
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Failed to upload file",
+        description: error.message || "Failed to process file",
         variant: "destructive",
       });
     }
   };
+
+  const isPending = uploadMutation.isPending || analyzeMutation.isPending;
 
   return (
     <div className="w-full max-w-xl mx-auto">
@@ -101,7 +116,7 @@ export function FileUpload({ onUploadComplete }: { onUploadComplete?: () => void
                     setFile(null);
                   }}
                   className="p-1 hover:bg-destructive/10 hover:text-destructive rounded-full transition-colors z-30"
-                  disabled={uploadMutation.isPending}
+                  disabled={isPending}
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -112,18 +127,18 @@ export function FileUpload({ onUploadComplete }: { onUploadComplete?: () => void
                   e.stopPropagation(); // Prevent input click
                   handleUpload();
                 }}
-                disabled={uploadMutation.isPending}
+                disabled={isPending}
                 className={cn(
                   "w-full py-2.5 rounded-lg font-medium transition-all duration-200 z-30 relative",
-                  uploadMutation.isPending
+                  isPending
                     ? "bg-secondary text-muted-foreground cursor-wait"
                     : "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-lg active:scale-[0.98]"
                 )}
               >
-                {uploadMutation.isPending ? (
+                {isPending ? (
                   <div className="flex items-center justify-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Uploading...</span>
+                    <span>{uploadMutation.isPending ? "Uploading..." : "Analyzing..."}</span>
                   </div>
                 ) : (
                   "Upload & Analyze"
