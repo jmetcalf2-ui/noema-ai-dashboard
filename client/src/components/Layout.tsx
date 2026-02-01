@@ -129,11 +129,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </Sidebar>
 
         <div className="flex flex-col flex-1 min-w-0">
-          <header className="h-14 border-b flex items-center gap-3 px-4 lg:hidden">
+          <header className="h-14 border-b flex items-center px-4 lg:hidden">
             <SidebarTrigger data-testid="button-sidebar-toggle" />
-            <Link href="/">
-              <span className="text-[17px] font-semibold tracking-tight text-foreground">Noema</span>
-            </Link>
           </header>
           <main className="flex-1 overflow-auto">{children}</main>
         </div>
