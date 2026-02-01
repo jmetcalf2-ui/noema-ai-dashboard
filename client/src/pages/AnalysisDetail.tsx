@@ -85,18 +85,21 @@ export default function AnalysisDetail() {
             Key Insights
           </h2>
           <div className="space-y-3">
-            {analysis.insights.map((insight: string, idx: number) => (
-              <div 
-                key={idx} 
-                className="flex gap-3 p-4 rounded-lg border bg-card"
-                data-testid={`insight-item-${idx}`}
-              >
-                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs font-medium shrink-0">
-                  {idx + 1}
-                </span>
-                <p className="text-sm leading-relaxed">{insight}</p>
-              </div>
-            ))}
+            {analysis.insights.map((insight: string | { insight: string }, idx: number) => {
+              const insightText = typeof insight === 'string' ? insight : insight.insight;
+              return (
+                <div 
+                  key={idx} 
+                  className="flex gap-3 p-4 rounded-lg border bg-card"
+                  data-testid={`insight-item-${idx}`}
+                >
+                  <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs font-medium shrink-0">
+                    {idx + 1}
+                  </span>
+                  <p className="text-sm leading-relaxed">{insightText}</p>
+                </div>
+              );
+            })}
           </div>
         </section>
       )}
