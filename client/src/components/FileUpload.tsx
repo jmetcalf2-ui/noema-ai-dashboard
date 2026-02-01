@@ -91,13 +91,16 @@ export function FileUpload({ onUploadComplete }: { onUploadComplete?: () => void
       >
         <input
           type="file"
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+          className={cn(
+            "absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10",
+            file && "hidden"
+          )}
           onChange={handleChange}
           accept=".csv,.xlsx,.xls,.json"
-          disabled={uploadMutation.isPending || !!file}
+          disabled={isPending}
         />
 
-        <div className="relative z-10 flex flex-col items-center justify-center gap-4">
+        <div className="relative z-20 flex flex-col items-center justify-center gap-4">
           {file ? (
             <div className="w-full">
               <div className="flex items-center justify-between bg-secondary/50 p-4 rounded-lg mb-6">
@@ -112,10 +115,11 @@ export function FileUpload({ onUploadComplete }: { onUploadComplete?: () => void
                 </div>
                 <button 
                   onClick={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
                     setFile(null);
                   }}
-                  className="p-1 hover:bg-destructive/10 hover:text-destructive rounded-full transition-colors z-30"
+                  className="p-1 hover:bg-destructive/10 hover:text-destructive rounded-full transition-colors z-30 relative"
                   disabled={isPending}
                 >
                   <X className="w-5 h-5" />
@@ -124,7 +128,8 @@ export function FileUpload({ onUploadComplete }: { onUploadComplete?: () => void
               
               <button
                 onClick={(e) => {
-                  e.stopPropagation(); // Prevent input click
+                  e.preventDefault();
+                  e.stopPropagation();
                   handleUpload();
                 }}
                 disabled={isPending}
