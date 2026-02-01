@@ -31,22 +31,26 @@ export function ChartBuilder({ data, onChartCreate }: ChartBuilderProps) {
 
   const columns = useMemo(() => {
     if (!data || data.length === 0) return [];
-    return Object.keys(data[0]);
+    return Object.keys(data[0]).filter((col) => col && col.trim() !== "");
   }, [data]);
 
   const numericColumns = useMemo(() => {
-    if (!data || data.length === 0) return [];
+    if (!data || data.length === 0 || columns.length === 0) return [];
     return columns.filter((col) => {
       const val = data[0][col];
       return typeof val === "number" || !isNaN(parseFloat(val));
     });
   }, [data, columns]);
 
+  const valueColumns = useMemo(() => {
+    return numericColumns.length > 0 ? numericColumns : columns;
+  }, [numericColumns, columns]);
+
   const previewConfig = useMemo(() => {
     if (!chartType || !categoryKey || !dataKey) return null;
 
     const aggregated = data.reduce((acc, row) => {
-      const key = String(row[categoryKey]);
+      const key = String(row[categoryKey] || "Unknown");
       if (!acc[key]) {
         acc[key] = { [categoryKey]: key, [dataKey]: 0, count: 0 };
       }
@@ -77,6 +81,22 @@ export function ChartBuilder({ data, onChartCreate }: ChartBuilderProps) {
       onChartCreate(previewConfig);
     }
   };
+
+  if (!data || data.length === 0 || columns.length === 0) {
+    return (
+      <Card className="p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-medium">Custom Chart Builder</h3>
+        </div>
+        <div className="border rounded-lg p-8 bg-secondary/20 text-center">
+          <BarChart3 className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" />
+          <p className="text-sm text-muted-foreground">
+            Loading data...
+          </p>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card className="p-5">
@@ -133,19 +153,11 @@ export function ChartBuilder({ data, onChartCreate }: ChartBuilderProps) {
               <SelectValue placeholder="Select column" />
             </SelectTrigger>
             <SelectContent>
-              {numericColumns.length > 0 ? (
-                numericColumns.map((col) => (
-                  <SelectItem key={col} value={col}>
-                    {col}
-                  </SelectItem>
-                ))
-              ) : (
-                columns.map((col) => (
-                  <SelectItem key={col} value={col}>
-                    {col}
-                  </SelectItem>
-                ))
-              )}
+              {valueColumns.map((col) => (
+                <SelectItem key={col} value={col}>
+                  {col}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

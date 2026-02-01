@@ -9,14 +9,13 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
+import { ExportMenu } from "@/components/ExportMenu";
 import {
-  ArrowLeft,
   Loader2,
   BarChart3,
   MessageSquare,
   Table2,
   Lightbulb,
-  Download,
   ChevronRight,
   FileSpreadsheet,
   TrendingUp,
@@ -106,10 +105,7 @@ export default function AnalysisDetail() {
                 {analysis.summary}
               </p>
             </div>
-            <Button variant="outline" size="sm" className="shrink-0" data-testid="button-export">
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
+            <ExportMenu analysis={analysis} data={fileData} />
           </div>
         </header>
 
