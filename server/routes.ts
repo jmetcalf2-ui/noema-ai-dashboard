@@ -52,7 +52,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
   app.get(api.files.get.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    const fileId = parseInt(req.params.id);
+    const fileId = parseInt(String(req.params.id));
     const file = await storage.getFile(fileId);
     
     if (!file) return res.status(404).json({ message: "File not found" });
@@ -157,7 +157,7 @@ Generate 2-3 charts that best visualize the most interesting patterns in this da
 
   app.get(api.analyses.get.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    const id = parseInt(req.params.id);
+    const id = parseInt(String(req.params.id));
     const analysis = await storage.getAnalysis(id);
     
     if (!analysis) return res.status(404).json({ message: "Analysis not found" });
@@ -168,7 +168,7 @@ Generate 2-3 charts that best visualize the most interesting patterns in this da
 
   app.delete(api.analyses.delete.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    const id = parseInt(req.params.id);
+    const id = parseInt(String(req.params.id));
     const analysis = await storage.getAnalysis(id);
 
     if (!analysis) return res.status(404).json({ message: "Analysis not found" });
@@ -176,6 +176,99 @@ Generate 2-3 charts that best visualize the most interesting patterns in this da
 
     await storage.deleteAnalysis(id);
     res.sendStatus(204);
+  });
+
+  // --- Data Chat API (SSE streaming) ---
+  app.post("/api/chat/data-analysis", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+
+    try {
+      const { analysisId, message, context, history } = req.body;
+
+      if (!message) {
+        return res.status(400).json({ message: "Message is required" });
+      }
+
+      const analysis = await storage.getAnalysis(analysisId);
+      if (!analysis) {
+        return res.status(404).json({ message: "Analysis not found" });
+      }
+
+      const systemPrompt = `You are a helpful data analyst assistant. You're analyzing a dataset.
+
+Analysis Title: ${analysis.title}
+Summary: ${analysis.summary}
+Key Insights: ${JSON.stringify(analysis.insights)}
+Available Charts: ${JSON.stringify(analysis.charts?.map((c: any) => ({ type: c.type, title: c.title })))}
+
+Additional Context: ${context || 'No additional context'}
+
+Help the user understand their data better. Be concise, specific, and provide actionable insights. Use plain language. Format responses with bullet points when listing multiple items.`;
+
+      const messages = [
+        { role: "system" as const, content: systemPrompt },
+        ...(history || []).map((h: any) => ({
+          role: h.role as "user" | "assistant",
+          content: h.content,
+        })),
+        { role: "user" as const, content: message },
+      ];
+
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+
+      const stream = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages,
+        stream: true,
+        max_completion_tokens: 1024,
+      });
+
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content || "";
+        if (content) {
+          res.write(`data: ${JSON.stringify({ content })}\n\n`);
+        }
+      }
+
+      res.write("data: [DONE]\n\n");
+      res.end();
+    } catch (error) {
+      console.error("Chat error:", error);
+      res.status(500).json({ message: "Chat failed" });
+    }
+  });
+
+  // --- Get file content for analysis ---
+  app.get("/api/analyses/:id/data", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    
+    const analysisId = parseInt(req.params.id);
+    const analysis = await storage.getAnalysis(analysisId);
+    
+    if (!analysis) return res.status(404).json({ message: "Analysis not found" });
+    if (analysis.userId !== (req.user as any).claims.sub) return res.status(403).json({ message: "Forbidden" });
+
+    const file = await storage.getFile(analysis.fileId);
+    if (!file || !file.content) {
+      return res.status(404).json({ message: "File data not found" });
+    }
+
+    // Parse CSV to JSON
+    const lines = file.content.split("\n").filter(l => l.trim());
+    const headers = lines[0].split(",").map(h => h.trim().replace(/^"|"$/g, ''));
+    const rows = lines.slice(1).map(line => {
+      const values = line.split(",").map(v => v.trim().replace(/^"|"$/g, ''));
+      return headers.reduce((obj, header, i) => {
+        const val = values[i] || "";
+        const num = parseFloat(val);
+        obj[header] = isNaN(num) ? val : num;
+        return obj;
+      }, {} as Record<string, any>);
+    });
+
+    res.json({ headers, rows: rows.slice(0, 500) }); // Limit to 500 rows for performance
   });
 
   return httpServer;
