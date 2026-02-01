@@ -180,7 +180,7 @@ const DonutChart = React.forwardRef<HTMLDivElement, DonutChartProps>(
 DonutChart.displayName = "DonutChart";
 
 type ChartConfigProp = {
-  type: "bar" | "line" | "pie" | "area";
+  type: "bar" | "line" | "pie" | "area" | "horizontal_bar";
   title: string;
   description?: string;
   dataKey: string;
@@ -380,6 +380,53 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
                 strokeWidth={2}
               />
             </AreaChart>
+          </ChartContainer>
+        );
+
+      case "horizontal_bar":
+        return (
+          <ChartContainer config={chartConfig} className="h-[280px] w-full">
+            <BarChart
+              accessibilityLayer
+              data={config.data}
+              layout="vertical"
+              margin={{ left: 0, right: 24, top: 10, bottom: 10 }}
+            >
+              <defs>
+                <linearGradient id={`hbarGradient-${chartId}`} x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor={GRADIENT_COLORS[3].start} stopOpacity={0.9} />
+                  <stop offset="100%" stopColor={GRADIENT_COLORS[3].end} stopOpacity={1} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid horizontal={false} strokeDasharray="3 3" className="stroke-border/30" />
+              <XAxis 
+                type="number"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+              />
+              <YAxis
+                dataKey={categoryKey}
+                type="category"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                width={80}
+                tickFormatter={(value) => String(value).slice(0, 12)}
+              />
+              <ChartTooltip
+                cursor={{ fill: 'hsl(var(--muted)/0.3)', radius: 4 }}
+                content={<ChartTooltipContent hideLabel />}
+              />
+              <Bar
+                dataKey={config.dataKey}
+                fill={`url(#hbarGradient-${chartId})`}
+                radius={[0, 6, 6, 0]}
+                maxBarSize={32}
+              />
+            </BarChart>
           </ChartContainer>
         );
 
