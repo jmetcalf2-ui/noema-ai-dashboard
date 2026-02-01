@@ -2,70 +2,80 @@ import { FileUpload } from "@/components/FileUpload";
 import { useAnalyses } from "@/hooks/use-analyses";
 import { Link } from "wouter";
 import { Card } from "@/components/ui/card";
-import { ArrowRight, Loader2, BarChart3, FileSpreadsheet } from "lucide-react";
+import { ArrowRight, Loader2, BarChart3, Clock } from "lucide-react";
 
 export default function Dashboard() {
   const { data: analyses, isLoading } = useAnalyses();
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  };
+
   return (
     <div className="min-h-[85vh] flex flex-col">
-      <div className="flex-1 flex items-center justify-center px-6 py-16">
-        <div className="w-full max-w-lg space-y-10">
-          <div className="text-center space-y-2">
-            <h1 className="text-xl font-medium">
+      <div className="flex-1 flex items-center justify-center px-6 py-20">
+        <div className="w-full max-w-md space-y-12">
+          <div className="text-center space-y-3">
+            <h1 className="text-2xl font-medium text-foreground">
               Analyze your data
             </h1>
-            <p className="text-muted-foreground text-sm">
-              Upload a CSV or Excel file to generate charts and insights
+            <p className="text-muted-foreground text-[15px] max-w-sm mx-auto">
+              Upload a spreadsheet and get AI-powered charts, insights, and summaries in seconds.
             </p>
           </div>
 
           <FileUpload />
 
           {isLoading ? (
-            <div className="flex justify-center py-6">
-              <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+            <div className="flex justify-center py-8">
+              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground/60" />
             </div>
           ) : analyses && analyses.length > 0 ? (
-            <div className="pt-6">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs text-muted-foreground font-medium">Recent</span>
+            <div className="pt-4">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider">
+                  Recent analyses
+                </span>
                 <Link
                   href="/analyses"
-                  className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+                  className="text-[13px] text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors"
                   data-testid="link-view-all"
                 >
-                  View all <ArrowRight className="w-3 h-3" />
+                  View all <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
               <div className="space-y-2">
                 {analyses.slice(0, 4).map((analysis: any) => (
                   <Link key={analysis.id} href={`/analyses/${analysis.id}`}>
                     <Card
-                      className="p-3.5 hover:bg-secondary/40 transition-colors cursor-pointer"
+                      className="p-4 hover:bg-accent/50 transition-all duration-200 cursor-pointer group"
                       data-testid={`analysis-item-${analysis.id}`}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-md bg-secondary flex items-center justify-center shrink-0">
-                          <BarChart3 className="w-3.5 h-3.5 text-muted-foreground" />
+                      <div className="flex items-center gap-3.5">
+                        <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center shrink-0">
+                          <BarChart3 className="w-4 h-4 text-muted-foreground" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm truncate">
+                          <p className="text-[14px] font-medium truncate text-foreground group-hover:text-foreground">
                             {analysis.title.replace("Analysis: ", "")}
                           </p>
-                          <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <FileSpreadsheet className="w-3 h-3" />
-                              {analysis.charts?.length || 0} charts
-                            </span>
+                          <div className="flex items-center gap-1.5 mt-1 text-[12px] text-muted-foreground">
+                            <Clock className="w-3 h-3" />
                             <span>
-                              {analysis.createdAt
-                                ? new Date(analysis.createdAt).toLocaleDateString()
-                                : ""}
+                              {analysis.createdAt ? formatDate(analysis.createdAt) : ""}
                             </span>
+                            <span className="text-muted-foreground/40 mx-1">·</span>
+                            <span>{analysis.charts?.length || 0} charts</span>
                           </div>
                         </div>
-                        <ArrowRight className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
+                        <ArrowRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors shrink-0" />
                       </div>
                     </Card>
                   </Link>

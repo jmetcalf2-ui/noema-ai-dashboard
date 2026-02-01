@@ -1,7 +1,7 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Link, useLocation } from "wouter";
 import { useAnalyses } from "@/hooks/use-analyses";
-import { Home, BarChart3, FolderOpen, Clock } from "lucide-react";
+import { Home, BarChart3, FolderOpen } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -16,7 +16,7 @@ import {
   SidebarFooter,
   SidebarHeader,
 } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
@@ -36,7 +36,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const recentAnalyses = (analyses || []).slice(0, 5);
 
   const style = {
-    "--sidebar-width": "15rem",
+    "--sidebar-width": "14.5rem",
     "--sidebar-width-icon": "3rem",
   };
 
@@ -44,13 +44,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <SidebarProvider style={style as React.CSSProperties}>
       <div className="flex h-screen w-full">
         <Sidebar>
-          <SidebarHeader className="h-12 flex items-center px-4 border-b">
-            <Link href="/" className="text-sm font-medium tracking-tight">
-              Noema
+          <SidebarHeader className="h-14 flex items-center px-5 border-b border-sidebar-border">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-md bg-foreground flex items-center justify-center">
+                <BarChart3 className="w-3.5 h-3.5 text-background" />
+              </div>
+              <span className="font-medium text-[15px] tracking-tight">Noema</span>
             </Link>
           </SidebarHeader>
 
-          <SidebarContent>
+          <SidebarContent className="px-2 py-3">
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu>
@@ -63,7 +66,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         <SidebarMenuButton asChild isActive={isActive}>
                           <Link href={item.href} data-testid={`nav-${item.label.toLowerCase()}`}>
                             <item.icon className="w-4 h-4" />
-                            <span className="text-sm">{item.label}</span>
+                            <span>{item.label}</span>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -74,14 +77,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </SidebarGroup>
 
             {recentAnalyses.length > 0 && (
-              <SidebarGroup>
-                <SidebarGroupLabel className="text-xs text-muted-foreground">
+              <SidebarGroup className="mt-4">
+                <SidebarGroupLabel className="px-3 text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider">
                   Recent
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {recentAnalyses.map((analysis: any) => {
                       const isActive = location === `/analyses/${analysis.id}`;
+                      const title = analysis.title.replace("Analysis: ", "");
                       return (
                         <SidebarMenuItem key={analysis.id}>
                           <SidebarMenuButton asChild isActive={isActive}>
@@ -90,9 +94,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                               className="truncate"
                               data-testid={`recent-analysis-${analysis.id}`}
                             >
-                              <span className="truncate text-sm">
-                                {analysis.title.replace("Analysis: ", "")}
-                              </span>
+                              <span className="truncate text-[13px]">{title}</span>
                             </Link>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
@@ -104,21 +106,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
             )}
           </SidebarContent>
 
-          <SidebarFooter className="border-t p-3">
-            <div className="flex items-center justify-between">
+          <SidebarFooter className="border-t border-sidebar-border p-3">
+            <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center text-xs text-muted-foreground shrink-0">
-                  {user.firstName?.[0] || user.email?.[0] || "U"}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm truncate">
-                    {user.firstName || "User"}
-                  </p>
-                </div>
+                <Avatar className="w-7 h-7">
+                  <AvatarFallback className="text-[11px] font-medium bg-secondary text-muted-foreground">
+                    {user.firstName?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-[13px] truncate text-sidebar-foreground">
+                  {user.firstName || "User"}
+                </span>
               </div>
               <button
                 onClick={() => logout()}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                className="text-[12px] text-muted-foreground hover:text-foreground transition-colors"
                 data-testid="button-logout"
               >
                 Sign out
@@ -128,10 +130,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </Sidebar>
 
         <div className="flex flex-col flex-1 min-w-0">
-          <header className="h-12 border-b flex items-center px-4 lg:hidden">
+          <header className="h-14 border-b flex items-center px-4 lg:hidden">
             <SidebarTrigger data-testid="button-sidebar-toggle" />
-            <Link href="/" className="text-sm font-medium ml-3">
-              Noema
+            <Link href="/" className="flex items-center gap-2 ml-3">
+              <div className="w-5 h-5 rounded bg-foreground flex items-center justify-center">
+                <BarChart3 className="w-3 h-3 text-background" />
+              </div>
+              <span className="font-medium text-sm">Noema</span>
             </Link>
           </header>
           <main className="flex-1 overflow-auto">{children}</main>

@@ -1,95 +1,95 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@350;400;450;500;550;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;550&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 
-  --background: 0 0% 99%;
-  --foreground: 0 0% 9%;
+  --background: 40 20% 99%;
+  --foreground: 220 15% 15%;
 
   --card: 0 0% 100%;
-  --card-foreground: 0 0% 9%;
+  --card-foreground: 220 15% 15%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 9%;
+  --popover-foreground: 220 15% 15%;
 
-  --primary: 0 0% 12%;
+  --primary: 220 15% 18%;
   --primary-foreground: 0 0% 98%;
 
-  --secondary: 0 0% 96%;
-  --secondary-foreground: 0 0% 20%;
+  --secondary: 220 8% 96%;
+  --secondary-foreground: 220 12% 25%;
 
-  --muted: 0 0% 96%;
-  --muted-foreground: 0 0% 45%;
+  --muted: 220 8% 96%;
+  --muted-foreground: 220 8% 46%;
 
-  --accent: 0 0% 96%;
-  --accent-foreground: 0 0% 12%;
+  --accent: 220 8% 94%;
+  --accent-foreground: 220 15% 18%;
 
   --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 100%;
 
-  --border: 0 0% 90%;
-  --input: 0 0% 90%;
-  --ring: 0 0% 12%;
+  --border: 220 10% 91%;
+  --input: 220 10% 91%;
+  --ring: 220 15% 18%;
 
   --radius: 0.5rem;
   
-  --chart-1: 0 0% 15%;
-  --chart-2: 0 0% 35%;
-  --chart-3: 0 0% 55%;
-  --chart-4: 0 0% 70%;
-  --chart-5: 0 0% 85%;
+  --chart-1: 243 75% 59%;
+  --chart-2: 192 91% 36%;
+  --chart-3: 160 84% 39%;
+  --chart-4: 32 95% 44%;
+  --chart-5: 280 65% 60%;
 
-  --sidebar-background: 0 0% 99%;
-  --sidebar-foreground: 0 0% 25%;
-  --sidebar-primary: 0 0% 12%;
+  --sidebar-background: 220 12% 98%;
+  --sidebar-foreground: 220 12% 30%;
+  --sidebar-primary: 220 15% 18%;
   --sidebar-primary-foreground: 0 0% 98%;
-  --sidebar-accent: 0 0% 95%;
-  --sidebar-accent-foreground: 0 0% 12%;
-  --sidebar-border: 0 0% 92%;
-  --sidebar-ring: 0 0% 12%;
+  --sidebar-accent: 220 10% 93%;
+  --sidebar-accent-foreground: 220 15% 18%;
+  --sidebar-border: 220 10% 92%;
+  --sidebar-ring: 220 15% 18%;
 }
 
 .dark {
-  --background: 0 0% 4%;
-  --foreground: 0 0% 95%;
+  --background: 220 15% 6%;
+  --foreground: 220 10% 92%;
 
-  --card: 0 0% 6%;
-  --card-foreground: 0 0% 95%;
+  --card: 220 15% 8%;
+  --card-foreground: 220 10% 92%;
 
-  --popover: 0 0% 6%;
-  --popover-foreground: 0 0% 95%;
+  --popover: 220 15% 8%;
+  --popover-foreground: 220 10% 92%;
 
-  --primary: 0 0% 95%;
-  --primary-foreground: 0 0% 6%;
+  --primary: 220 10% 92%;
+  --primary-foreground: 220 15% 8%;
 
-  --secondary: 0 0% 12%;
-  --secondary-foreground: 0 0% 88%;
+  --secondary: 220 12% 14%;
+  --secondary-foreground: 220 8% 80%;
 
-  --muted: 0 0% 12%;
-  --muted-foreground: 0 0% 55%;
+  --muted: 220 12% 14%;
+  --muted-foreground: 220 8% 55%;
 
-  --accent: 0 0% 14%;
-  --accent-foreground: 0 0% 95%;
+  --accent: 220 12% 16%;
+  --accent-foreground: 220 10% 92%;
 
   --destructive: 0 62% 50%;
   --destructive-foreground: 0 0% 100%;
 
-  --border: 0 0% 16%;
-  --input: 0 0% 16%;
-  --ring: 0 0% 95%;
+  --border: 220 12% 18%;
+  --input: 220 12% 18%;
+  --ring: 220 10% 92%;
 
-  --sidebar-background: 0 0% 5%;
-  --sidebar-foreground: 0 0% 88%;
-  --sidebar-primary: 0 0% 95%;
-  --sidebar-primary-foreground: 0 0% 6%;
-  --sidebar-accent: 0 0% 12%;
-  --sidebar-accent-foreground: 0 0% 95%;
-  --sidebar-border: 0 0% 14%;
-  --sidebar-ring: 0 0% 95%;
+  --sidebar-background: 220 15% 7%;
+  --sidebar-foreground: 220 8% 82%;
+  --sidebar-primary: 220 10% 92%;
+  --sidebar-primary-foreground: 220 15% 8%;
+  --sidebar-accent: 220 12% 14%;
+  --sidebar-accent-foreground: 220 10% 92%;
+  --sidebar-border: 220 12% 16%;
+  --sidebar-ring: 220 10% 92%;
 }
 
 @layer base {
@@ -101,23 +101,28 @@
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
   h1 {
-    @apply tracking-tight;
     font-weight: 500;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
   }
   h2 {
-    @apply tracking-tight;
     font-weight: 500;
-    letter-spacing: -0.015em;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
   }
   h3, h4, h5, h6 {
-    @apply tracking-tight;
     font-weight: 500;
+    letter-spacing: -0.01em;
   }
   p {
     font-weight: 400;
+    line-height: 1.6;
+  }
+  button, input, select, textarea {
+    font-family: inherit;
   }
 }
 
@@ -128,22 +133,24 @@
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background-color: hsl(var(--foreground) / 0.08);
+  background-color: hsl(var(--foreground) / 0.1);
   border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background-color: hsl(var(--foreground) / 0.15);
+  background-color: hsl(var(--foreground) / 0.18);
 }
 
 .glass {
-  @apply backdrop-blur-xl bg-background/80;
+  @apply backdrop-blur-xl bg-background/85;
 }
 
 @keyframes shimmer {
@@ -159,18 +166,42 @@
     hsl(var(--muted)) 100%
   );
   background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
+  animation: shimmer 1.8s infinite;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
 }
 
 .prose-dashboard {
-  @apply text-sm leading-relaxed text-foreground/85;
+  @apply text-sm leading-relaxed;
+  color: hsl(var(--foreground) / 0.88);
 }
 .prose-dashboard strong {
-  @apply font-medium text-foreground;
+  @apply font-medium;
+  color: hsl(var(--foreground));
 }
 .prose-dashboard ul {
-  @apply list-disc list-inside space-y-1 my-2;
+  @apply list-disc list-inside space-y-1.5 my-3;
 }
 .prose-dashboard ol {
-  @apply list-decimal list-inside space-y-1 my-2;
+  @apply list-decimal list-inside space-y-1.5 my-3;
+}
+.prose-dashboard code {
+  @apply text-xs bg-secondary px-1.5 py-0.5 rounded;
+}
+
+.data-grid {
+  @apply text-sm;
+}
+.data-grid th {
+  @apply text-xs font-medium text-muted-foreground uppercase tracking-wide;
+}
+.data-grid td {
+  @apply tabular-nums;
 }

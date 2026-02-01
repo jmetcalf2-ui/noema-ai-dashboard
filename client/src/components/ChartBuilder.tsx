@@ -10,7 +10,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ChartRenderer } from "./ChartRenderer";
-import { BarChart3, LineChart, PieChart, AreaChart, Plus } from "lucide-react";
+import { BarChart3, LineChart, PieChart, AreaChart, Plus, Wand2 } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface ChartBuilderProps {
   data: any[];
@@ -18,10 +19,10 @@ interface ChartBuilderProps {
 }
 
 const CHART_TYPES = [
-  { value: "bar", label: "Bar", icon: BarChart3 },
-  { value: "line", label: "Line", icon: LineChart },
-  { value: "area", label: "Area", icon: AreaChart },
-  { value: "pie", label: "Pie", icon: PieChart },
+  { value: "bar", label: "Bar Chart", icon: BarChart3 },
+  { value: "line", label: "Line Chart", icon: LineChart },
+  { value: "area", label: "Area Chart", icon: AreaChart },
+  { value: "pie", label: "Pie Chart", icon: PieChart },
 ];
 
 export function ChartBuilder({ data, onChartCreate }: ChartBuilderProps) {
@@ -79,50 +80,51 @@ export function ChartBuilder({ data, onChartCreate }: ChartBuilderProps) {
   const handleCreate = () => {
     if (previewConfig && onChartCreate) {
       onChartCreate(previewConfig);
+      setChartType("");
+      setCategoryKey("");
+      setDataKey("");
     }
   };
 
   if (!data || data.length === 0 || columns.length === 0) {
-    return (
-      <Card className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium">Custom Chart</span>
-        </div>
-        <div className="border rounded-lg p-6 bg-secondary/10 text-center">
-          <BarChart3 className="w-8 h-8 mx-auto mb-2 text-muted-foreground/30" />
-          <p className="text-xs text-muted-foreground">
-            Loading data...
-          </p>
-        </div>
-      </Card>
-    );
+    return null;
   }
 
   return (
-    <Card className="p-4">
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-medium">Custom Chart</span>
+    <Card className="p-5">
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center">
+            <Wand2 className="w-4 h-4 text-muted-foreground" />
+          </div>
+          <div>
+            <span className="text-[14px] font-medium">Create Custom Chart</span>
+            <p className="text-[12px] text-muted-foreground">Build your own visualization</p>
+          </div>
+        </div>
         {previewConfig && (
           <Button size="sm" onClick={handleCreate} data-testid="button-create-chart">
-            <Plus className="w-3.5 h-3.5 mr-1" />
-            Add
+            <Plus className="w-4 h-4 mr-1.5" />
+            Add to Dashboard
           </Button>
         )}
       </div>
 
-      <div className="grid grid-cols-3 gap-3 mb-4">
-        <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground">Type</Label>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+        <div className="space-y-2">
+          <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+            Chart Type
+          </Label>
           <Select value={chartType} onValueChange={setChartType}>
-            <SelectTrigger className="h-9 text-sm" data-testid="select-chart-type">
-              <SelectValue placeholder="Select" />
+            <SelectTrigger className="h-10" data-testid="select-chart-type">
+              <SelectValue placeholder="Select type" />
             </SelectTrigger>
             <SelectContent>
               {CHART_TYPES.map((type) => (
                 <SelectItem key={type.value} value={type.value}>
-                  <div className="flex items-center gap-2">
-                    <type.icon className="w-3.5 h-3.5" />
-                    {type.label}
+                  <div className="flex items-center gap-2.5">
+                    <type.icon className="w-4 h-4 text-muted-foreground" />
+                    <span>{type.label}</span>
                   </div>
                 </SelectItem>
               ))}
@@ -130,11 +132,13 @@ export function ChartBuilder({ data, onChartCreate }: ChartBuilderProps) {
           </Select>
         </div>
 
-        <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground">Category</Label>
+        <div className="space-y-2">
+          <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+            Category (X-Axis)
+          </Label>
           <Select value={categoryKey} onValueChange={setCategoryKey}>
-            <SelectTrigger className="h-9 text-sm" data-testid="select-category">
-              <SelectValue placeholder="Select" />
+            <SelectTrigger className="h-10" data-testid="select-category">
+              <SelectValue placeholder="Select column" />
             </SelectTrigger>
             <SelectContent>
               {columns.map((col) => (
@@ -146,11 +150,13 @@ export function ChartBuilder({ data, onChartCreate }: ChartBuilderProps) {
           </Select>
         </div>
 
-        <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground">Value</Label>
+        <div className="space-y-2">
+          <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+            Value (Y-Axis)
+          </Label>
           <Select value={dataKey} onValueChange={setDataKey}>
-            <SelectTrigger className="h-9 text-sm" data-testid="select-value">
-              <SelectValue placeholder="Select" />
+            <SelectTrigger className="h-10" data-testid="select-value">
+              <SelectValue placeholder="Select column" />
             </SelectTrigger>
             <SelectContent>
               {valueColumns.map((col) => (
@@ -164,14 +170,18 @@ export function ChartBuilder({ data, onChartCreate }: ChartBuilderProps) {
       </div>
 
       {previewConfig ? (
-        <div className="border rounded-lg p-3 bg-secondary/10">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="border rounded-xl p-4 bg-card"
+        >
           <ChartRenderer config={previewConfig as any} />
-        </div>
+        </motion.div>
       ) : (
-        <div className="border rounded-lg p-6 bg-secondary/10 text-center">
-          <BarChart3 className="w-8 h-8 mx-auto mb-2 text-muted-foreground/30" />
-          <p className="text-xs text-muted-foreground">
-            Select options to preview
+        <div className="border-2 border-dashed rounded-xl p-10 text-center">
+          <BarChart3 className="w-10 h-10 mx-auto mb-3 text-muted-foreground/20" />
+          <p className="text-[14px] text-muted-foreground">
+            Select options above to preview your chart
           </p>
         </div>
       )}
