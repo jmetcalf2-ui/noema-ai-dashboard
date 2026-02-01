@@ -44,10 +44,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <SidebarProvider style={style as React.CSSProperties}>
       <div className="flex h-screen w-full">
         <Sidebar>
-          <SidebarHeader className="h-14 flex items-center justify-start px-4 border-b border-sidebar-border">
-            <Link href="/" data-testid="link-logo">
-              <span className="text-[18px] font-semibold tracking-tight text-foreground">Noema</span>
-            </Link>
+          <SidebarHeader className="h-14 border-b border-sidebar-border">
+            <div className="flex items-center h-full px-4">
+              <Link href="/" data-testid="link-logo">
+                <span className="text-[18px] font-semibold tracking-tight text-foreground">Noema</span>
+              </Link>
+            </div>
           </SidebarHeader>
 
           <SidebarContent className="px-2 py-3">
