@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Sparkles, Loader2, User, ArrowUp, Plus, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import ReactMarkdown from "react-markdown";
 
 interface Message {
   role: "user" | "assistant";
@@ -25,7 +25,6 @@ export function DataChat({ analysisId, dataContext, className }: DataChatProps) 
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Extract column names from context for source detection
   const columns = dataContext.match(/Columns: ([^,]+(?:, [^,]+)*)/)?.[1]?.split(", ") || [];
 
   useEffect(() => {
@@ -87,12 +86,10 @@ export function DataChat({ analysisId, dataContext, className }: DataChatProps) 
               if (parsed.content) {
                 assistantMessage += parsed.content;
                 
-                // Detect which columns were referenced
                 const usedColumns = columns.filter(col => 
                   assistantMessage.toLowerCase().includes(col.toLowerCase())
                 );
                 
-                // Estimate confidence based on response length and specificity
                 let confidence: "high" | "medium" | "low" = "medium";
                 if (assistantMessage.length > 200 && usedColumns.length > 0) {
                   confidence = "high";
@@ -136,7 +133,6 @@ export function DataChat({ analysisId, dataContext, className }: DataChatProps) 
     }
   };
 
-  // Context-aware suggestions based on the data
   const suggestions = [
     "What patterns stand out in this data?",
     "Summarize the key metrics",
@@ -153,36 +149,40 @@ export function DataChat({ analysisId, dataContext, className }: DataChatProps) 
   };
 
   return (
-    <Card className={cn("flex flex-col h-[520px] overflow-hidden", className)}>
-      <div className="flex items-center gap-2.5 px-5 py-4 border-b">
-        <div className="w-7 h-7 rounded-lg bg-secondary flex items-center justify-center">
-          <Sparkles className="w-3.5 h-3.5 text-muted-foreground" />
+    <div className={cn("flex flex-col h-full min-h-[600px]", className)}>
+      <div className="flex items-center gap-2.5 px-6 py-4 border-b bg-background">
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+          <Sparkles className="w-4 h-4 text-white" />
         </div>
         <div>
-          <span className="text-[14px] font-medium">Data Assistant</span>
-          <p className="text-[11px] text-muted-foreground">Ask analytical questions about your data</p>
+          <span className="text-[15px] font-medium">Data Assistant</span>
+          <p className="text-[12px] text-muted-foreground">Ask analytical questions about your data</p>
         </div>
       </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 space-y-4">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6">
         <AnimatePresence initial={false}>
           {messages.length === 0 ? (
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="h-full flex flex-col items-center justify-center text-center px-4"
+              className="h-full flex flex-col items-center justify-center text-center px-4 py-12"
             >
-              <p className="text-[13px] text-muted-foreground mb-4">
-                Ask a question to explore your data
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mb-5">
+                <Sparkles className="w-7 h-7 text-white" />
+              </div>
+              <h3 className="text-lg font-medium mb-2">Ask a question about your data</h3>
+              <p className="text-[14px] text-muted-foreground mb-6 max-w-md">
+                I can help you explore patterns, find insights, and understand your dataset better.
               </p>
-              <div className="flex flex-wrap gap-2 justify-center max-w-md">
+              <div className="flex flex-wrap gap-2 justify-center max-w-lg">
                 {suggestions.map((s, i) => (
                   <Button
                     key={i}
                     variant="outline"
                     size="sm"
                     onClick={() => setInput(s)}
-                    className="rounded-full text-[12px] h-8"
+                    className="rounded-full text-[13px] h-9"
                     data-testid={`suggestion-${i}`}
                   >
                     {s}
@@ -203,20 +203,42 @@ export function DataChat({ analysisId, dataContext, className }: DataChatProps) 
                 )}
               >
                 {msg.role === "assistant" && (
-                  <div className="w-7 h-7 rounded-lg bg-secondary flex items-center justify-center shrink-0">
-                    <Sparkles className="w-3.5 h-3.5 text-muted-foreground" />
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shrink-0">
+                    <Sparkles className="w-4 h-4 text-white" />
                   </div>
                 )}
-                <div className="max-w-[80%]">
+                <div className={cn("max-w-[85%]", msg.role === "user" ? "max-w-[75%]" : "")}>
                   <div
                     className={cn(
-                      "px-4 py-2.5 rounded-2xl text-[14px] leading-relaxed",
+                      "px-4 py-3 rounded-2xl text-[14px] leading-relaxed",
                       msg.role === "user"
                         ? "bg-foreground text-background rounded-br-md"
                         : "bg-secondary text-foreground rounded-bl-md"
                     )}
                   >
-                    {msg.content || (
+                    {msg.content ? (
+                      msg.role === "assistant" ? (
+                        <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-headings:my-3 prose-headings:font-medium">
+                          <ReactMarkdown
+                            components={{
+                              p: ({ children }) => <p className="text-[14px] leading-relaxed">{children}</p>,
+                              ul: ({ children }) => <ul className="list-disc pl-4 space-y-1">{children}</ul>,
+                              ol: ({ children }) => <ol className="list-decimal pl-4 space-y-1">{children}</ol>,
+                              li: ({ children }) => <li className="text-[14px]">{children}</li>,
+                              strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
+                              h1: ({ children }) => <h3 className="text-[15px] font-semibold mt-4 mb-2">{children}</h3>,
+                              h2: ({ children }) => <h4 className="text-[15px] font-semibold mt-3 mb-2">{children}</h4>,
+                              h3: ({ children }) => <h5 className="text-[14px] font-semibold mt-3 mb-1">{children}</h5>,
+                              code: ({ children }) => <code className="bg-background/50 px-1.5 py-0.5 rounded text-[13px]">{children}</code>,
+                            }}
+                          >
+                            {msg.content}
+                          </ReactMarkdown>
+                        </div>
+                      ) : (
+                        msg.content
+                      )
+                    ) : (
                       <div className="flex items-center gap-1.5">
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
                         <span className="text-[13px] text-muted-foreground">Analyzing...</span>
@@ -224,18 +246,17 @@ export function DataChat({ analysisId, dataContext, className }: DataChatProps) 
                     )}
                   </div>
                   
-                  {/* Source and confidence indicators for assistant messages */}
                   {msg.role === "assistant" && msg.content && (
-                    <div className="flex items-center gap-3 mt-1.5 px-1">
+                    <div className="flex items-center gap-3 mt-2 px-1">
                       {msg.sources && msg.sources.length > 0 && (
-                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
                           <Info className="w-3 h-3" />
                           <span>Based on: {msg.sources.join(", ")}</span>
                         </div>
                       )}
                       {msg.confidence && (
                         <span className={cn(
-                          "text-[10px] font-medium uppercase tracking-wider",
+                          "text-[11px] font-medium uppercase tracking-wider",
                           confidenceColors[msg.confidence]
                         )}>
                           {msg.confidence} confidence
@@ -245,8 +266,8 @@ export function DataChat({ analysisId, dataContext, className }: DataChatProps) 
                   )}
                 </div>
                 {msg.role === "user" && (
-                  <div className="w-7 h-7 rounded-lg bg-foreground flex items-center justify-center shrink-0">
-                    <User className="w-3.5 h-3.5 text-background" />
+                  <div className="w-8 h-8 rounded-lg bg-foreground flex items-center justify-center shrink-0">
+                    <User className="w-4 h-4 text-background" />
                   </div>
                 )}
               </motion.div>
@@ -255,8 +276,8 @@ export function DataChat({ analysisId, dataContext, className }: DataChatProps) 
         </AnimatePresence>
       </div>
 
-      <div className="p-4">
-        <div className="flex flex-col rounded-[28px] p-2 shadow-sm transition-colors bg-secondary/50 dark:bg-secondary/30 border">
+      <div className="p-4 border-t bg-background">
+        <div className="flex flex-col rounded-2xl p-2 shadow-sm transition-colors bg-secondary/50 dark:bg-secondary/30 border">
           <textarea
             ref={textareaRef}
             rows={1}
@@ -265,14 +286,14 @@ export function DataChat({ analysisId, dataContext, className }: DataChatProps) 
             onKeyDown={handleKeyDown}
             placeholder="Ask a question about your data..."
             disabled={isLoading}
-            className="w-full resize-none border-0 bg-transparent px-3 py-2 text-[14px] text-foreground placeholder:text-muted-foreground focus:ring-0 focus-visible:outline-none min-h-[40px]"
+            className="w-full resize-none border-0 bg-transparent px-3 py-2 text-[14px] text-foreground placeholder:text-muted-foreground focus:ring-0 focus-visible:outline-none min-h-[44px]"
             data-testid="input-chat"
           />
           
           <div className="flex items-center justify-between px-1 pt-1">
             <button
               type="button"
-              className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none"
               data-testid="button-attach"
             >
               <Plus className="h-5 w-5" />
@@ -284,9 +305,9 @@ export function DataChat({ analysisId, dataContext, className }: DataChatProps) 
               onClick={sendMessage}
               disabled={!hasValue || isLoading}
               className={cn(
-                "flex h-8 w-8 items-center justify-center rounded-full transition-all focus-visible:outline-none",
+                "flex h-9 w-9 items-center justify-center rounded-full transition-all focus-visible:outline-none",
                 hasValue && !isLoading
-                  ? "bg-foreground text-background hover:opacity-80"
+                  ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:opacity-90"
                   : "bg-muted text-muted-foreground cursor-not-allowed"
               )}
               data-testid="button-send-chat"
@@ -301,6 +322,6 @@ export function DataChat({ analysisId, dataContext, className }: DataChatProps) 
           </div>
         </div>
       </div>
-    </Card>
+    </div>
   );
 }

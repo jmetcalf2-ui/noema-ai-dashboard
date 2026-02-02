@@ -293,12 +293,12 @@ export default function AnalysisDetail() {
           </TabsContent>
 
           <TabsContent value="chat" className="mt-0">
-            <div className="max-w-xl">
+            <Card className="overflow-hidden">
               <DataChat
                 analysisId={id}
                 dataContext={`File: ${analysis.title}, Summary: ${analysis.summary}, Columns: ${sanitizedData?.headers?.join(", ") || ""}`}
               />
-            </div>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
