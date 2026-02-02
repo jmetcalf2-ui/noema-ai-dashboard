@@ -37,7 +37,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   const navItems = [
     { href: "/", label: "Overview", icon: Home },
-    { href: "/analyses", label: "Analyses", icon: BarChart3 },
+    { href: "/analyses", label: "Analysis", icon: BarChart3 },
     { href: "/projects", label: "Projects", icon: Layers },
     { href: "/files", label: "Files", icon: FolderOpen },
   ];
@@ -47,7 +47,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   // Helper to generate breadcrumb text based on current path
   const getBreadcrumb = () => {
     if (location === "/" || location === "/dashboard") return "Overview";
-    if (location.startsWith("/analyses")) return "Analyses";
+    if (location.startsWith("/analyses")) return "Analysis";
     if (location.startsWith("/projects")) return "Projects";
     if (location.startsWith("/files")) return "Files";
     return "Dashboard";
@@ -61,7 +61,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <Link href="/">
               <div className="flex items-center gap-2 font-semibold tracking-tight text-sidebar-foreground">
                 <div className="w-5 h-5 bg-primary rounded-sm flex items-center justify-center">
-                   <div className="w-2.5 h-2.5 bg-primary-foreground rounded-full" />
+                  <div className="w-2.5 h-2.5 bg-primary-foreground rounded-full" />
                 </div>
                 <span>Noema</span>
               </div>
@@ -81,13 +81,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       (item.href !== "/" && location.startsWith(item.href));
                     return (
                       <SidebarMenuItem key={item.href}>
-                        <SidebarMenuButton 
-                          asChild 
+                        <SidebarMenuButton
+                          asChild
                           isActive={isActive}
                           className={`
                             h-9 text-[13px] font-medium transition-all duration-200
-                            ${isActive 
-                              ? "bg-sidebar-accent text-sidebar-primary-foreground font-semibold shadow-sm" 
+                            ${isActive
+                              ? "bg-sidebar-accent text-sidebar-primary-foreground font-semibold shadow-sm"
                               : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50"
                             }
                           `}
@@ -116,8 +116,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       const title = analysis.title.replace("Analysis: ", "");
                       return (
                         <SidebarMenuItem key={analysis.id}>
-                          <SidebarMenuButton 
-                            asChild 
+                          <SidebarMenuButton
+                            asChild
                             isActive={isActive}
                             className="h-8 text-[13px] text-muted-foreground hover:text-foreground"
                           >

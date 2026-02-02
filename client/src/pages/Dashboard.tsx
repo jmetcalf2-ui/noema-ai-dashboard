@@ -87,9 +87,11 @@ export default function Dashboard() {
                       <p className="text-sm text-muted-foreground mt-1 mb-4">
                         Upload a dataset to generate new insights and visualizations.
                       </p>
-                      <Button size="sm" className="w-full sm:w-auto">
-                        <Plus className="w-4 h-4 mr-2" /> Start Analysis
-                      </Button>
+                      <Link href="/files">
+                        <Button size="sm" className="w-full sm:w-auto shadow-sm">
+                          <Plus className="w-4 h-4 mr-2" /> Start Analysis
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                 </CardContent>
@@ -97,20 +99,20 @@ export default function Dashboard() {
 
               <div className="space-y-4">
                 <Link href="/analyses">
-                  <Card className="p-4 hover:bg-secondary/50 transition-all cursor-pointer group">
+                  <Card className="p-4 hover:shadow-md transition-all cursor-pointer group border border-border/60">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-md bg-secondary flex items-center justify-center">
                           <BarChart3 className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
                         </div>
-                        <span className="font-medium text-sm">Browse Analyses</span>
+                        <span className="font-medium text-sm">Browse Analysis</span>
                       </div>
                       <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
                     </div>
                   </Card>
                 </Link>
                 <Link href="/files">
-                  <Card className="p-4 hover:bg-secondary/50 transition-all cursor-pointer group">
+                  <Card className="p-4 hover:shadow-md transition-all cursor-pointer group border border-border/60">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-md bg-secondary flex items-center justify-center">
@@ -126,7 +128,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Recent Analyes Table-ish view */}
+          {/* Recent Analysis Table-ish view */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold tracking-tight">Recent Activity</h2>
@@ -135,9 +137,9 @@ export default function Dashboard() {
               </Link>
             </div>
 
-            <div className="rounded-lg border border-border bg-card overflow-hidden">
+            <div className="rounded-lg border border-border bg-card overflow-hidden shadow-sm">
               {analyses && analyses.length > 0 ? (
-                <div className="divide-y divide-border/50">
+                <div className="divide-y divide-border/40">
                   {analyses.slice(0, 5).map((analysis: any) => (
                     <Link key={analysis.id} href={`/analyses/${analysis.id}`}>
                       <div className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors cursor-pointer group">

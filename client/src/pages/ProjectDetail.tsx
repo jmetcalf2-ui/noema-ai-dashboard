@@ -224,7 +224,7 @@ export default function ProjectDetail() {
         <div className="space-y-6">
           <div className="flex items-center justify-between border-b pb-4">
             <h2 className="text-lg font-medium tracking-tight">
-              Analyses
+              Analysis
               {analyses && analyses.length > 0 && (
                 <span className="ml-2 text-sm text-muted-foreground font-normal">
                   ({analyses.length})

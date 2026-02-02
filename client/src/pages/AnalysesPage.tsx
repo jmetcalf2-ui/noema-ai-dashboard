@@ -1,11 +1,11 @@
 import { useAnalyses, useCreateAnalysis, useDeleteAnalysis } from "@/hooks/use-analyses";
 import { useFiles } from "@/hooks/use-files";
 import { Link } from "wouter";
-import { 
-  Loader2, 
-  Plus, 
-  Trash2, 
-  BarChart3, 
+import {
+  Loader2,
+  Plus,
+  Trash2,
+  BarChart3,
   Search,
   MoreHorizontal,
   FolderPlus
@@ -49,11 +49,11 @@ export default function AnalysesPage() {
   const [selectedFileId, setSelectedFileId] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState("");
   const [projectModalOpen, setProjectModalOpen] = useState(false);
-  const [selectedAnalysisForProject, setSelectedAnalysisForProject] = useState<{id: number; title: string} | null>(null);
+  const [selectedAnalysisForProject, setSelectedAnalysisForProject] = useState<{ id: number; title: string } | null>(null);
 
   const handleCreate = async () => {
     if (!selectedFileId) return;
-    
+
     try {
       await createAnalysis.mutateAsync({ fileId: parseInt(selectedFileId) });
       setIsDialogOpen(false);
@@ -83,8 +83,8 @@ export default function AnalysesPage() {
     }
   };
 
-  const filteredAnalyses = analyses?.filter((a: any) => 
-    a.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const filteredAnalyses = analyses?.filter((a: any) =>
+    a.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     a.summary.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -92,7 +92,7 @@ export default function AnalysesPage() {
     <div className="max-w-5xl mx-auto px-8 py-10 space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-medium text-foreground">Analyses</h1>
+          <h1 className="text-xl font-medium text-foreground">Analysis</h1>
           <p className="text-[14px] text-muted-foreground mt-1">
             Explore insights generated from your data.
           </p>
@@ -128,8 +128,8 @@ export default function AnalysesPage() {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-              <Button 
-                onClick={handleCreate} 
+              <Button
+                onClick={handleCreate}
                 disabled={!selectedFileId || createAnalysis.isPending}
               >
                 {createAnalysis.isPending ? "Processing..." : "Start Analysis"}
@@ -141,8 +141,8 @@ export default function AnalysesPage() {
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input 
-          placeholder="Search analyses..." 
+        <Input
+          placeholder="Search analyses..."
           className="pl-9 max-w-sm"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -166,7 +166,7 @@ export default function AnalysesPage() {
           {filteredAnalyses?.map((analysis: any) => (
             <div key={analysis.id} className="relative">
               <Link href={`/analyses/${analysis.id}`}>
-                <div 
+                <div
                   className="group bg-card rounded-lg border p-5 hover:bg-accent/50 transition-colors cursor-pointer h-full flex flex-col"
                   data-testid={`analysis-card-${analysis.id}`}
                 >
@@ -185,12 +185,12 @@ export default function AnalysesPage() {
                   </div>
                 </div>
               </Link>
-              
+
               <div className="absolute top-3 right-3">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="icon"
                       className="h-8 w-8"
                       data-testid={`analysis-menu-${analysis.id}`}
@@ -199,7 +199,7 @@ export default function AnalysesPage() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => {
                         setSelectedAnalysisForProject({ id: analysis.id, title: analysis.title.replace("Analysis: ", "") });
                         setProjectModalOpen(true);
@@ -209,8 +209,8 @@ export default function AnalysesPage() {
                       <FolderPlus className="w-4 h-4 mr-2" />
                       Add to Project
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => handleDelete({ preventDefault: () => {}, stopPropagation: () => {} } as any, analysis.id)}
+                    <DropdownMenuItem
+                      onClick={() => handleDelete({ preventDefault: () => { }, stopPropagation: () => { } } as any, analysis.id)}
                       className="text-destructive"
                       data-testid={`button-delete-${analysis.id}`}
                     >

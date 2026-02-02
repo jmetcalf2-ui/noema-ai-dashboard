@@ -18,6 +18,7 @@ export interface ColumnProfile {
         p75: number;
         p90: number;
     };
+    outlierCount?: number;
 }
 
 export interface DatasetProfile {

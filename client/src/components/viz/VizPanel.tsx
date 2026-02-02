@@ -104,24 +104,75 @@ export function VizPanel({ data, mode = "client_research" }: VizPanelProps) {
                 </div>
             </Card>
 
+            {/* Deep Intelligence Insights */}
+            {
+                (profile.correlations?.length > 0 || profile.columns.some(c => c.outlierCount && c.outlierCount > 0)) && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+                        {/* Correlations */}
+                        {profile.correlations && profile.correlations.length > 0 && (
+                            <Card className="p-5 clean-card">
+                                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                    Key Correlations
+                                </h3>
+                                <div className="space-y-2">
+                                    {profile.correlations.slice(0, 5).map((c, i) => (
+                                        <div key={i} className="flex items-center justify-between text-xs group">
+                                            <span className="text-muted-foreground group-hover:text-foreground transition-colors">
+                                                {c.a} <span className="opacity-50">vs</span> {c.b}
+                                            </span>
+                                            <Badge variant="secondary" className={c.r > 0 ? "text-emerald-600 bg-emerald-500/10" : "text-rose-600 bg-rose-500/10"}>
+                                                {c.r > 0 ? "+" : ""}{c.r.toFixed(2)}
+                                            </Badge>
+                                        </div>
+                                    ))}
+                                </div>
+                            </Card>
+                        )}
+
+                        {/* Outliers */}
+                        {profile.columns.some(c => c.outlierCount && c.outlierCount > 0) && (
+                            <Card className="p-5 clean-card">
+                                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                    Detected Outliers
+                                </h3>
+                                <div className="space-y-2">
+                                    {profile.columns.filter(c => c.outlierCount && c.outlierCount > 0).slice(0, 5).map((c, i) => (
+                                        <div key={i} className="flex items-center justify-between text-xs">
+                                            <span className="text-muted-foreground">{c.name}</span>
+                                            <span className="text-amber-600 font-medium bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100">
+                                                {c.outlierCount} outliers
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </Card>
+                        )}
+                    </div>
+                )
+            }
+
             {/* Results Section */}
             {error && <div className="text-destructive text-sm p-4 bg-destructive/10 rounded-lg">{error}</div>}
 
-            {plan && (
-                <div className="space-y-6 animate-in fade-in-20 slide-in-from-bottom-2 duration-500">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h3 className="text-xl font-bold">{plan.title}</h3>
-                            <p className="text-muted-foreground text-sm max-w-2xl mt-1">{plan.rationale}</p>
+            {
+                plan && (
+                    <div className="space-y-6 animate-in fade-in-20 slide-in-from-bottom-2 duration-500">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h3 className="text-xl font-bold">{plan.title}</h3>
+                                <p className="text-muted-foreground text-sm max-w-2xl mt-1">{plan.rationale}</p>
+                            </div>
+                            <Badge variant={plan.complexity === "complex" ? "destructive" : "secondary"}>
+                                {plan.complexity} mode
+                            </Badge>
                         </div>
-                        <Badge variant={plan.complexity === "complex" ? "destructive" : "secondary"}>
-                            {plan.complexity} mode
-                        </Badge>
-                    </div>
 
-                    <VizRenderer plan={plan} data={data} />
-                </div>
-            )}
-        </div>
+                        <VizRenderer plan={plan} data={data} />
+                    </div>
+                )
+            }
+        </div >
     );
 }

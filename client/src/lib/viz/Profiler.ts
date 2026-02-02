@@ -54,30 +54,45 @@ export function profileDataset(rows: Record<string, any>[]): DatasetProfile {
         else if (isGeo) inferredType = "geo";
         else if (uniqueCount < rowCount * 0.2 || uniqueCount < 20) inferredType = "categorical"; // Heuristic
 
-        // Numeric Stats
+        // Numeric Stats & Outlier Detection
         let numericStats;
+        let outliers: number[] = []; // Store indices of outliers
+
         if (inferredType === "numeric") {
-            const nums = values.map(v => Number(v)).sort((a, b) => a - b);
-            if (nums.length > 0) {
-                const min = nums[0];
-                const max = nums[nums.length - 1];
-                const mean = nums.reduce((a, b) => a + b, 0) / nums.length;
-                const median = nums[Math.floor(nums.length / 2)];
+            const nums = values.map(v => Number(v)); // Keep original order for indices
+            const sortedNums = [...nums].sort((a, b) => a - b);
+
+            if (sortedNums.length > 0) {
+                const min = sortedNums[0];
+                const max = sortedNums[sortedNums.length - 1];
+                const mean = sortedNums.reduce((a, b) => a + b, 0) / sortedNums.length;
+                const median = sortedNums[Math.floor(sortedNums.length / 2)];
 
                 // Std Dev
-                const variance = nums.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / nums.length;
+                const variance = sortedNums.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / sortedNums.length;
                 const std = Math.sqrt(variance);
 
                 // Skewness (approx)
                 const skew = (3 * (mean - median)) / std || 0;
 
                 // Percentiles
-                const p10 = nums[Math.floor(nums.length * 0.1)] || min;
-                const p25 = nums[Math.floor(nums.length * 0.25)] || min;
-                const p75 = nums[Math.floor(nums.length * 0.75)] || max;
-                const p90 = nums[Math.floor(nums.length * 0.90)] || max;
+                const p10 = sortedNums[Math.floor(sortedNums.length * 0.1)] || min;
+                const p25 = sortedNums[Math.floor(sortedNums.length * 0.25)] || min;
+                const p75 = sortedNums[Math.floor(sortedNums.length * 0.75)] || max;
+                const p90 = sortedNums[Math.floor(sortedNums.length * 0.90)] || max;
 
                 numericStats = { min, max, mean, median, std, skew, p10, p25, p75, p90 };
+
+                // Outlier Detection (Z-Score > 3)
+                if (std > 0) {
+                    rows.forEach((r, idx) => {
+                        const val = Number(r[key]);
+                        if (!isNaN(val)) {
+                            const zScore = Math.abs((val - mean) / std);
+                            if (zScore > 3) outliers.push(idx);
+                        }
+                    });
+                }
             }
         }
 
@@ -88,6 +103,7 @@ export function profileDataset(rows: Record<string, any>[]): DatasetProfile {
             uniqueCount,
             examples: Array.from(uniqueValues).slice(0, 5) as string[],
             numeric: numericStats,
+            outlierCount: outliers.length
         });
 
         if (inferredType === "numeric") numericColumns.push(key);
@@ -97,6 +113,7 @@ export function profileDataset(rows: Record<string, any>[]): DatasetProfile {
         if (inferredType === "id") idColumns.push(key);
 
         if (missingRate > 0.5) warnings.push(`High missingness in ${key} (${(missingRate * 100).toFixed(0)}%)`);
+        if (outliers.length > 0) warnings.push(`${key} has ${outliers.length} detected outliers.`);
     }
 
     // Basic Correlations (Pearson) for top numeric columns (limit to avoid n^2 perf hit on huge data)
@@ -124,7 +141,8 @@ export function profileDataset(rows: Record<string, any>[]): DatasetProfile {
                 }
                 const r = num / (Math.sqrt(denA) * Math.sqrt(denB)) || 0;
 
-                if (Math.abs(r) > 0.5) {
+                // Store all significant correlations
+                if (Math.abs(r) > 0.3) {
                     correlations.push({ a: keyA, b: keyB, r });
                 }
             }
