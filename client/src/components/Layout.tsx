@@ -1,7 +1,7 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Link, useLocation } from "wouter";
 import { useAnalyses } from "@/hooks/use-analyses";
-import { Home, BarChart3, FolderOpen, Layers, PieChart } from "lucide-react";
+import { Home, BarChart3, FolderOpen, Layers, PieChart, ChevronRight, LogOut, User } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -15,8 +15,16 @@ import {
   SidebarTrigger,
   SidebarFooter,
   SidebarHeader,
+  SidebarRail,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
@@ -28,34 +36,45 @@ export function Layout({ children }: { children: React.ReactNode }) {
   }
 
   const navItems = [
-    { href: "/", label: "Home", icon: Home },
+    { href: "/", label: "Overview", icon: Home },
     { href: "/analyses", label: "Analyses", icon: BarChart3 },
     { href: "/projects", label: "Projects", icon: Layers },
     { href: "/files", label: "Files", icon: FolderOpen },
-    { href: "/visualizations", label: "Charts", icon: PieChart },
+    { href: "/visualizations", label: "Visualizations", icon: PieChart },
   ];
 
   const recentAnalyses = (analyses || []).slice(0, 5);
 
-  const style = {
-    "--sidebar-width": "14.5rem",
-    "--sidebar-width-icon": "3rem",
+  // Helper to generate breadcrumb text based on current path
+  const getBreadcrumb = () => {
+    if (location === "/" || location === "/dashboard") return "Overview";
+    if (location.startsWith("/analyses")) return "Analyses";
+    if (location.startsWith("/projects")) return "Projects";
+    if (location.startsWith("/files")) return "Files";
+    if (location.startsWith("/visualizations")) return "Visualizations";
+    return "Dashboard";
   };
 
   return (
-    <SidebarProvider style={style as React.CSSProperties}>
-      <div className="flex h-screen w-full">
-        <Sidebar>
-          <SidebarHeader className="h-14 border-b border-sidebar-border">
-            <div className="flex items-center h-full px-4">
-              <Link href="/" data-testid="link-logo">
-                <span className="text-[18px] font-semibold tracking-tight text-foreground">Noema</span>
-              </Link>
-            </div>
+    <SidebarProvider>
+      <div className="flex h-screen w-full bg-background">
+        <Sidebar className="border-r border-sidebar-border/60">
+          <SidebarHeader className="h-14 border-b border-sidebar-border/40 px-4 flex items-center justify-between">
+            <Link href="/">
+              <div className="flex items-center gap-2 font-semibold tracking-tight text-sidebar-foreground">
+                <div className="w-5 h-5 bg-primary rounded-sm flex items-center justify-center">
+                   <div className="w-2.5 h-2.5 bg-primary-foreground rounded-full" />
+                </div>
+                <span>Noema</span>
+              </div>
+            </Link>
           </SidebarHeader>
 
-          <SidebarContent className="px-2 py-3">
+          <SidebarContent className="px-2 py-4">
             <SidebarGroup>
+              <SidebarGroupLabel className="px-2 text-[11px] font-medium text-muted-foreground/60 uppercase tracking-wider mb-2">
+                Platform
+              </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {navItems.map((item) => {
@@ -64,9 +83,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       (item.href !== "/" && location.startsWith(item.href));
                     return (
                       <SidebarMenuItem key={item.href}>
-                        <SidebarMenuButton asChild isActive={isActive}>
-                          <Link href={item.href} data-testid={`nav-${item.label.toLowerCase()}`}>
-                            <item.icon className="w-4 h-4" />
+                        <SidebarMenuButton 
+                          asChild 
+                          isActive={isActive}
+                          className={`
+                            h-9 text-[13px] font-medium transition-all duration-200
+                            ${isActive 
+                              ? "bg-sidebar-accent text-sidebar-primary-foreground font-semibold shadow-sm" 
+                              : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50"
+                            }
+                          `}
+                        >
+                          <Link href={item.href}>
+                            <item.icon className="w-4 h-4 mr-2 opacity-80" />
                             <span>{item.label}</span>
                           </Link>
                         </SidebarMenuButton>
@@ -78,9 +107,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </SidebarGroup>
 
             {recentAnalyses.length > 0 && (
-              <SidebarGroup className="mt-4">
-                <SidebarGroupLabel className="px-3 text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider">
-                  Recent
+              <SidebarGroup className="mt-6">
+                <SidebarGroupLabel className="px-2 text-[11px] font-medium text-muted-foreground/60 uppercase tracking-wider mb-2">
+                  Recent Work
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
@@ -89,13 +118,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       const title = analysis.title.replace("Analysis: ", "");
                       return (
                         <SidebarMenuItem key={analysis.id}>
-                          <SidebarMenuButton asChild isActive={isActive}>
-                            <Link
-                              href={`/analyses/${analysis.id}`}
-                              className="truncate"
-                              data-testid={`recent-analysis-${analysis.id}`}
-                            >
-                              <span className="truncate text-[13px]">{title}</span>
+                          <SidebarMenuButton 
+                            asChild 
+                            isActive={isActive}
+                            className="h-8 text-[13px] text-muted-foreground hover:text-foreground"
+                          >
+                            <Link href={`/analyses/${analysis.id}`} className="truncate">
+                              <span className="truncate w-full">{title}</span>
                             </Link>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
@@ -107,34 +136,54 @@ export function Layout({ children }: { children: React.ReactNode }) {
             )}
           </SidebarContent>
 
-          <SidebarFooter className="border-t border-sidebar-border p-3">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <Avatar className="w-7 h-7">
-                  <AvatarFallback className="text-[11px] font-medium bg-secondary text-muted-foreground">
-                    {user.firstName?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || "U"}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="text-[13px] truncate text-sidebar-foreground">
-                  {user.firstName || "User"}
-                </span>
-              </div>
-              <button
-                onClick={() => logout()}
-                className="text-[12px] text-muted-foreground hover:text-foreground transition-colors"
-                data-testid="button-logout"
-              >
-                Sign out
-              </button>
-            </div>
+          <SidebarFooter className="p-3 border-t border-sidebar-border/40">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-3 w-full p-2 rounded-md hover:bg-sidebar-accent transition-colors group">
+                  <Avatar className="w-8 h-8 rounded-md border border-sidebar-border">
+                    <AvatarFallback className="text-xs font-medium bg-sidebar-accent text-sidebar-foreground">
+                      {user.firstName?.[0]?.toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col items-start text-sm">
+                    <span className="font-medium text-sidebar-foreground group-hover:text-foreground transition-colors">
+                      {user.firstName || "User"}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">Pro Plan</span>
+                  </div>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg pointer-events-auto">
+                <DropdownMenuItem onClick={() => logout()} className="text-red-500 focus:text-red-500 cursor-pointer">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarFooter>
+          <SidebarRail />
         </Sidebar>
 
-        <div className="flex flex-col flex-1 min-w-0">
-          <header className="h-14 border-b flex items-center px-4 lg:hidden">
-            <SidebarTrigger data-testid="button-sidebar-toggle" />
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-w-0 bg-background h-screen overflow-hidden">
+          {/* Top Header */}
+          <header className="h-14 flex-none border-b border-border/40 bg-background/50 backdrop-blur-sm px-6 flex items-center justify-between z-10 sticky top-0">
+            <div className="flex items-center gap-2">
+              <SidebarTrigger className="-ml-2 h-8 w-8 text-muted-foreground hover:text-foreground lg:hidden" />
+              <div className="flex items-center text-sm">
+                <span className="text-muted-foreground/60 font-medium">Noema</span>
+                <ChevronRight className="w-4 h-4 mx-1 text-muted-foreground/40" />
+                <span className="text-foreground font-medium">{getBreadcrumb()}</span>
+              </div>
+            </div>
           </header>
-          <main className="flex-1 overflow-auto">{children}</main>
+
+          {/* Page Content */}
+          <main className="flex-1 overflow-auto p-6 scroll-smooth">
+            <div className="mx-auto max-w-6xl w-full animate-fade-in space-y-6">
+              {children}
+            </div>
+          </main>
         </div>
       </div>
     </SidebarProvider>

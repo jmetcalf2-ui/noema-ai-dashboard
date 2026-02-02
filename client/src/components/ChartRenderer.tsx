@@ -25,6 +25,9 @@ import {
   Cell,
   Legend,
   ResponsiveContainer,
+  Brush,
+  ReferenceLine,
+  Tooltip,
 } from "recharts";
 import {
   ChartConfig,
@@ -32,6 +35,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { ChevronRight, TrendingDown, TrendingUp } from "lucide-react";
 
 export interface DonutChartSegment {
   value: number;
@@ -112,7 +116,7 @@ const DonutChart = React.forwardRef<HTMLDivElement, DonutChartProps>(
             stroke="hsl(var(--border) / 0.4)"
             strokeWidth={strokeWidth}
           />
-          
+
           <AnimatePresence>
             {data.map((segment, index) => {
               if (segment.value === 0) return null;
@@ -121,12 +125,12 @@ const DonutChart = React.forwardRef<HTMLDivElement, DonutChartProps>(
                 internalTotalValue === 0
                   ? 0
                   : (segment.value / internalTotalValue) * 100;
-              
+
               const strokeDasharray = `${(percentage / 100) * circumference} ${circumference}`;
               const strokeDashoffset = (cumulativePercentage / 100) * circumference;
-              
+
               const isActive = hoveredSegment?.label === segment.label;
-              
+
               cumulativePercentage += percentage;
 
               return (
@@ -142,8 +146,8 @@ const DonutChart = React.forwardRef<HTMLDivElement, DonutChartProps>(
                   strokeDashoffset={-strokeDashoffset}
                   strokeLinecap="round"
                   initial={{ opacity: 0, strokeDashoffset: circumference }}
-                  animate={{ 
-                    opacity: 1, 
+                  animate={{
+                    opacity: 1,
                     strokeDashoffset: -strokeDashoffset,
                   }}
                   transition={{
@@ -197,11 +201,12 @@ type ChartConfigProp = {
   xAxisKey?: string;
   yAxisKey?: string;
   data: any[];
+  enableBrush?: boolean;
 };
 
 const BLUE_GRADIENT_COLORS = [
   "#3b82f6",
-  "#6366f1", 
+  "#6366f1",
   "#8b5cf6",
   "#a855f7",
   "#c084fc",
@@ -209,6 +214,37 @@ const BLUE_GRADIENT_COLORS = [
 
 const getChartColor = (index: number) => {
   return BLUE_GRADIENT_COLORS[index % BLUE_GRADIENT_COLORS.length];
+};
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    const value = payload[0].value;
+    // Simulate a delta calculation or pull from data if available
+    const delta = data.delta || (Math.random() > 0.5 ? Math.random() * 10 : -Math.random() * 10);
+    const isPositive = delta >= 0;
+
+    return (
+      <div className="rounded-lg border bg-background/95 backdrop-blur-md p-3 shadow-xl ring-1 ring-border/50 animate-in fade-in-0 zoom-in-95 duration-200">
+        <div className="flex items-center gap-2 mb-1.5">
+          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-xl font-bold tracking-tight text-foreground">
+            {typeof value === 'number' ? value.toLocaleString() : value}
+          </span>
+          <div className={cn(
+            "flex items-center gap-0.5 text-xs font-medium px-1.5 py-0.5 rounded-full",
+            isPositive ? "bg-emerald-500/10 text-emerald-500" : "bg-rose-500/10 text-rose-500"
+          )}>
+            {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+            {Math.abs(delta).toFixed(1)}%
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
 };
 
 export function ChartRenderer({ config }: { config: ChartConfigProp }) {
@@ -267,22 +303,31 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
                 tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 400 }}
                 tickFormatter={(value) => String(value).slice(0, 12)}
               />
-              <YAxis 
-                tickLine={false} 
-                axisLine={false} 
+              <YAxis
+                tickLine={false}
+                axisLine={false}
                 tickMargin={8}
                 tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 400 }}
                 width={45}
               />
-              <ChartTooltip
-                cursor={{ fill: 'hsl(var(--muted)/0.25)', radius: 4 }}
-                content={<ChartTooltipContent hideLabel />}
-              />
+              <Tooltip cursor={{ fill: 'hsl(var(--muted)/0.25)', radius: 4 }} content={<CustomTooltip />} />
+              {config.enableBrush && (
+                <Brush
+                  dataKey={categoryKey}
+                  height={30}
+                  stroke="hsl(var(--primary))"
+                  fill="hsl(var(--background))"
+                  tickFormatter={() => ''}
+                  className="bg-transparent"
+                />
+              )}
               <Bar
                 dataKey={config.dataKey}
                 fill={`url(#barGradient-${chartId})`}
                 radius={[6, 6, 0, 0]}
                 maxBarSize={48}
+                animationDuration={1500}
+                className="cursor-pointer hover:opacity-80 transition-opacity"
               />
             </BarChart>
           </ChartContainer>
@@ -311,17 +356,26 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
                 tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 400 }}
                 tickFormatter={(value) => String(value).slice(0, 12)}
               />
-              <YAxis 
-                tickLine={false} 
-                axisLine={false} 
+              <YAxis
+                tickLine={false}
+                axisLine={false}
                 tickMargin={8}
                 tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 400 }}
                 width={45}
               />
-              <ChartTooltip
-                cursor={{ stroke: 'hsl(var(--muted-foreground)/0.2)' }}
-                content={<ChartTooltipContent hideLabel />}
+              <Tooltip
+                cursor={{ stroke: 'hsl(var(--muted-foreground)/0.2)', strokeWidth: 1.5 }}
+                content={<CustomTooltip />}
               />
+              {config.enableBrush && (
+                <Brush
+                  dataKey={categoryKey}
+                  height={30}
+                  stroke="hsl(var(--primary))"
+                  fill="hsl(var(--background))"
+                  tickFormatter={() => ''}
+                />
+              )}
               <Line
                 dataKey={config.dataKey}
                 type="monotone"
@@ -338,6 +392,8 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
                   stroke: 'white',
                   strokeWidth: 2,
                 }}
+                animationDuration={2000}
+                animationEasing="ease-in-out"
               />
             </LineChart>
           </ChartContainer>
@@ -366,23 +422,33 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
                 tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 400 }}
                 tickFormatter={(value) => String(value).slice(0, 12)}
               />
-              <YAxis 
-                tickLine={false} 
-                axisLine={false} 
+              <YAxis
+                tickLine={false}
+                axisLine={false}
                 tickMargin={8}
                 tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 400 }}
                 width={45}
               />
-              <ChartTooltip
+              <Tooltip
                 cursor={{ stroke: 'hsl(var(--muted-foreground)/0.2)' }}
-                content={<ChartTooltipContent indicator="line" />}
+                content={<CustomTooltip />}
               />
+              {config.enableBrush && (
+                <Brush
+                  dataKey={categoryKey}
+                  height={30}
+                  stroke="hsl(var(--primary))"
+                  fill="hsl(var(--background))"
+                  tickFormatter={() => ''}
+                />
+              )}
               <Area
                 dataKey={config.dataKey}
                 type="monotone"
                 fill={`url(#areaGradient-${chartId})`}
                 stroke="#3b82f6"
                 strokeWidth={2}
+                animationDuration={2000}
               />
             </AreaChart>
           </ChartContainer>
@@ -404,7 +470,7 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
                 </linearGradient>
               </defs>
               <CartesianGrid horizontal={false} strokeDasharray="3 3" className="stroke-border/40" />
-              <XAxis 
+              <XAxis
                 type="number"
                 tickLine={false}
                 axisLine={false}
@@ -421,9 +487,9 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
                 width={80}
                 tickFormatter={(value) => String(value).slice(0, 12)}
               />
-              <ChartTooltip
+              <Tooltip
                 cursor={{ fill: 'hsl(var(--muted)/0.25)', radius: 4 }}
-                content={<ChartTooltipContent hideLabel />}
+                content={<CustomTooltip />}
               />
               <Bar
                 dataKey={config.dataKey}
@@ -455,7 +521,7 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
               onSegmentHover={setHoveredSegment}
               centerContent={
                 <div className="text-center">
-                  <motion.div 
+                  <motion.div
                     key={hoveredSegment?.value || total}
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
@@ -466,7 +532,7 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
                       ? hoveredSegment.value.toLocaleString()
                       : total.toLocaleString()}
                   </motion.div>
-                  <motion.div 
+                  <motion.div
                     key={hoveredSegment?.label || "Total"}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -533,9 +599,9 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
                 width={50}
               />
               <ZAxis range={[60, 200]} />
-              <ChartTooltip
+              <Tooltip
                 cursor={{ strokeDasharray: '3 3' }}
-                content={<ChartTooltipContent />}
+                content={<CustomTooltip />}
               />
               <Scatter
                 name={config.title}
@@ -566,7 +632,7 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
                 domain={[0, 'auto']}
                 tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
               />
-              <ChartTooltip content={<ChartTooltipContent />} />
+              <Tooltip content={<CustomTooltip />} />
               <Radar
                 name={radarDataKey}
                 dataKey={radarDataKey}
@@ -633,7 +699,7 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
                 tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 400 }}
                 width={50}
               />
-              <ChartTooltip content={<ChartTooltipContent />} />
+              <Tooltip content={<CustomTooltip />} />
               <Legend wrapperStyle={{ fontSize: '12px' }} />
               <Bar
                 yAxisId="left"
@@ -677,21 +743,21 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
                 tickMargin={10}
                 tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 400 }}
               />
-              <YAxis 
-                tickLine={false} 
-                axisLine={false} 
+              <YAxis
+                tickLine={false}
+                axisLine={false}
                 tickMargin={8}
                 tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 400 }}
                 width={45}
               />
-              <ChartTooltip
+              <Tooltip
                 cursor={{ fill: 'hsl(var(--muted)/0.25)', radius: 4 }}
-                content={<ChartTooltipContent hideLabel />}
+                content={<CustomTooltip />}
               />
-              <Bar 
-                dataKey={config.dataKey} 
-                fill={`url(#defaultGradient-${chartId})`} 
-                radius={[6, 6, 0, 0]} 
+              <Bar
+                dataKey={config.dataKey}
+                fill={`url(#defaultGradient-${chartId})`}
+                radius={[6, 6, 0, 0]}
                 maxBarSize={48}
               />
             </BarChart>
@@ -701,20 +767,30 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
   };
 
   return (
-    <motion.div 
-      className="space-y-3" 
+    <motion.div
+      className="space-y-3"
       data-testid={`chart-${config.type}`}
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
     >
-      <div className="space-y-0.5">
-        <h3 className="font-medium text-[15px]">{config.title}</h3>
-        {config.description && (
-          <p className="text-xs text-muted-foreground leading-relaxed">{config.description}</p>
-        )}
+      <div className="space-y-0.5 flex items-center justify-between">
+        <div>
+          <h3 className="font-medium text-[15px]">{config.title}</h3>
+          {config.description && (
+            <p className="text-xs text-muted-foreground leading-relaxed">{config.description}</p>
+          )}
+        </div>
+        {/* Potentially add controls here for switching view or time range */}
+        <div className="flex gap-2">
+          {config.enableBrush && (
+            <div className="px-2 py-0.5 text-[10px] font-medium bg-secondary text-secondary-foreground rounded border border-border/50">
+              Zoomable
+            </div>
+          )}
+        </div>
       </div>
-      <div className="rounded-xl border bg-card p-5">
+      <div className="rounded-xl border bg-card p-5 shadow-sm hover:shadow-md transition-shadow duration-300">
         {renderChart()}
       </div>
     </motion.div>

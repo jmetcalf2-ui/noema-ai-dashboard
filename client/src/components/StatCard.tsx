@@ -33,51 +33,51 @@ export function StatCard({
   const isNeutral = change === undefined || change === 0;
 
   return (
-    <Card className={cn("p-5", className)}>
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2">
-            {icon && (
-              <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                {icon}
-              </div>
-            )}
-            <span className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground">
-              {label}
-            </span>
-          </div>
-          
-          <motion.div 
-            className="text-2xl font-semibold tabular-nums tracking-tight"
+    <Card className={cn("p-5 flex flex-col justify-between overflow-hidden relative", className)}>
+      <div className="flex items-start justify-between z-10">
+        <div className="flex flex-col gap-1">
+          <span className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground">
+            {label}
+          </span>
+          <motion.div
+            className="text-2xl font-semibold tabular-nums tracking-tight text-foreground"
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
             {typeof value === "number" ? value.toLocaleString() : value}
           </motion.div>
-          
-          {change !== undefined && (
-            <div className="flex items-center gap-1.5 mt-2">
-              <div
-                className={cn(
-                  "flex items-center gap-0.5 text-[12px] font-medium px-1.5 py-0.5 rounded",
-                  isPositive && "text-blue-600 bg-blue-500/10",
-                  isNegative && "text-indigo-600 bg-indigo-500/10",
-                  isNeutral && "text-muted-foreground bg-muted"
-                )}
-              >
-                {isPositive && <ArrowUp className="w-3 h-3" />}
-                {isNegative && <ArrowDown className="w-3 h-3" />}
-                {isNeutral && <Minus className="w-3 h-3" />}
-                <span>{Math.abs(change).toFixed(1)}%</span>
-              </div>
-              <span className="text-[11px] text-muted-foreground">{changeLabel}</span>
-            </div>
-          )}
         </div>
-        
+
+        {icon && (
+          <div className="text-muted-foreground/50">
+            {icon}
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-end justify-between mt-4 z-10">
+        {change !== undefined && (
+          <div className="flex items-center gap-1.5">
+            <div
+              className={cn(
+                "flex items-center gap-0.5 text-[11px] font-medium px-1.5 py-0.5 rounded-sm border",
+                isPositive && "text-emerald-700 bg-emerald-50 border-emerald-200/50 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20",
+                isNegative && "text-rose-700 bg-rose-50 border-rose-200/50 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20",
+                isNeutral && "text-muted-foreground bg-secondary border-transparent"
+              )}
+            >
+              {isPositive && <ArrowUp className="w-3 h-3" />}
+              {isNegative && <ArrowDown className="w-3 h-3" />}
+              {isNeutral && <Minus className="w-3 h-3" />}
+              <span>{Math.abs(change).toFixed(1)}%</span>
+            </div>
+            <span className="text-[11px] text-muted-foreground/60">{changeLabel}</span>
+          </div>
+        )}
+
         {trend && trend.length > 0 && (
-          <div className="shrink-0">
+          <div className="w-20 h-8 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
             {trendType === "line" ? (
               <Sparkline data={trend} width={80} height={32} />
             ) : (
@@ -112,15 +112,15 @@ export function ProgressStat({
   className,
 }: ProgressStatProps) {
   const percentage = Math.min((value / max) * 100, 100);
-  
+
   const heights = {
     sm: "h-1.5",
     md: "h-2",
     lg: "h-3",
   };
 
-  const displayValue = format === "percent" 
-    ? `${percentage.toFixed(0)}%` 
+  const displayValue = format === "percent"
+    ? `${percentage.toFixed(0)}%`
     : `${value.toLocaleString()} / ${max.toLocaleString()}`;
 
   return (

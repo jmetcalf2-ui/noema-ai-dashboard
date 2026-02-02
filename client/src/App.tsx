@@ -10,7 +10,7 @@ import AnalysesPage from "@/pages/AnalysesPage";
 import AnalysisDetail from "@/pages/AnalysisDetail";
 import ProjectsPage from "@/pages/ProjectsPage";
 import ProjectDetail from "@/pages/ProjectDetail";
-import VisualizationShowcase from "@/pages/VisualizationShowcase";
+// Removed VisualizationShowcase import as part of cleanup
 import Landing from "@/pages/Landing";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/use-auth";
@@ -48,7 +48,7 @@ function Router() {
         <Route path="/analyses/:id" component={AnalysisDetail} />
         <Route path="/projects" component={ProjectsPage} />
         <Route path="/projects/:id" component={ProjectDetail} />
-        <Route path="/visualizations" component={VisualizationShowcase} />
+        {/* Route removed */}
         <Route component={NotFound} />
       </Switch>
     </Layout>

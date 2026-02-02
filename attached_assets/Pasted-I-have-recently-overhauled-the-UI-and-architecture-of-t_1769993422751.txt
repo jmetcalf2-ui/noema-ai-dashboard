@@ -1,0 +1,26 @@
+I have recently overhauled the UI and architecture of this repository to create a "Professional, Minimal, Sleek, and Trustworthy" dashboard.
+
+Please review the repository at: https://github.com/jmetcalf2-ui/noema-ai-dashboard
+
+Here is a summary of the extensive changes that have been pushed to the `main` branch:
+
+1. **New Design System**:
+   - Implemented a "Zinc" monochrome palette for a premium feel.
+   - Updated typography to `Inter` with tight tracking.
+   - Refined [index.css](cci:7://file:///Users/jakemetcalf/Documents/noema-ai-dashboard-1/client/src/index.css:0:0-0:0) and [tailwind.config.ts](cci:7://file:///Users/jakemetcalf/Documents/noema-ai-dashboard-1/tailwind.config.ts:0:0-0:0).
+
+2. **Advanced Visualization Components** (`client/src/components/charts/`):
+   - Created `ZoomableLineChart`: A premium time-series chart with brush zooming and gradient fills.
+   - Created `InsightMetric`: A composite component showing a primary metric + sparkline + text insight.
+   - Refactored `ChartRenderer`: Added glassmorphism tooltips, "drill-down" interactions, and animation polish.
+
+3. **Core Feature Integration**:
+   - **Analysis Detail Page**: Updated to auto-detect time-series data and render the new `ZoomableLineChart` instead of basic static charts. Added tabs for Overview, Insights, and Data.
+   - **Project Detail Page**: Added a "Project Dashboard" section with aggregated stats and a cross-project activity timeline.
+   - **Cleanup**: Removed the standalone `VisualizationShowcase` page as these features are now native to the app.
+
+**Your Tasks:**
+1. **Pull & Install**: Pull the latest changes from `main` and run `npm install` to ensure all dependencies (Recharts, Framer Motion, etc.) are up to date.
+2. **Database Setup**: The local build failed previously because `DATABASE_URL` was missing. Please provision a PostgreSQL database (or verify the existing one), push the schema (`npm run db:push`), and ensure the server can connect.
+3. **Verify UI**: Run the dev server. Navigate to an "Analysis" or "Project" page to verify that the new interactive charts appear and the layout uses the new "Zinc" design system.
+4. **Backend Hookup (Next Step)**: We currently use some placeholder data for the `InsightMetric` components. If possible, explore connecting these components to real backend logic in `server/routes.ts`.
