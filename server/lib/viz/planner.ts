@@ -59,34 +59,83 @@ export function generateVizPlan(req: VizRequest): VizPlan {
     if (datasetProfile.numericColumns.length > 0 && (question.includes("dist") || !views.length)) {
         const valCol = datasetProfile.numericColumns.find(c => question.includes(c)) || datasetProfile.numericColumns[0];
         const isBigSkew = datasetProfile.columns.find(c => c.name === valCol)?.numeric?.skew || 0 > 2;
+        // 2. Select View Types (Structure-First Logic)
+        // Structure -> Relationships -> Trend -> Detail
 
+        const views: ViewSpec[] = [];
+        const profile = datasetProfile; // Alias for brevity
+
+        // A. Univariate Structure (Distribution)
+        // If we have numeric columns, show their distribution first (Structure)
+        const primaryNumeric = profile.numericColumns[0];
+        if (primaryNumeric) {
+            const stats = profile.columns.find(c => c.name === primaryNumeric)?.numeric;
+            const isSkewed = stats && Math.abs(stats.skew) > 2;
+            const isLogCandidate = isSkewed && stats.min !== undefined && stats.min > 0; // Ensure min is defined and > 0
+
+            views.push({
+                id: "dist_1",
+                kind: "histogram",
+                dataset: "main",
+                encodings: {
+                    x: primaryNumeric,
+                },
+                options: {
+                    logScale: isLogCandidate,
+                    facetBy: profile.categoricalColumns.length > 0 ? profile.categoricalColumns[0] : undefined
+                },
+                annotations: [
+                    { type: "text", value: stats?.mean, note: "Avg" }
+                ]
+            });
+        }
+
+        // B. Relationships (Scatter) - Only if Correlation exists and is strong enough
+        if (profile.correlations && profile.correlations.length > 0) {
+            const topCorr = profile.correlations.find(c => Math.abs(c.r) >= 0.3); // Gating: require R > 0.3
+            if (topCorr) {
+                views.push({
+                    id: "rel_1",
+                    kind: "scatter",
+                    dataset: "main",
+                    encodings: {
+                        x: topCorr.a,
+                        y: topCorr.b,
+                        tooltip: [topCorr.a, topCorr.b, ...profile.categoricalColumns.slice(0, 1)]
+                    },
+                    options: {
+                        showTrendline: true
+                    }
+                });
+            }
+        }
+
+        // C. Trends over time (with Uncertainty)
+        if (profile.datetimeColumns.length > 0 && primaryNumeric) {
+            const timeCol = profile.datetimeColumns[0];
+
+            // Check for Uncertainty Bounds
+            const lowerBound = profile.columns.find(c => c.semanticType === "uncertainty_bound" && c.name.toLowerCase().includes("lower"))?.name;
+            const upperBound = profile.columns.find(c => c.semanticType === "uncertainty_bound" && c.name.toLowerCase().includes("upper"))?.name;
+
+            views.push({
+                id: "trend_1",
+                kind: "line",
+                dataset: "main",
+                encodings: {
+                    x: timeCol,
+                    y: primaryNumeric,
+                    series: profile.categoricalColumns.length > 0 && profile.categoricalColumns[0] !== "id" ? profile.categoricalColumns[0] : undefined
+                },
+                options: {
+                    confidenceBand: lowerBound && upperBound ? { lower: lowerBound, upper: upperBound } : undefined
+                }
+            });
+        }
+
+        // D. Detail (Table) - Always available but last
         views.push({
-            id: "dist_hist",
-            kind: "histogram",
-            dataset: "main",
-            encodings: { x: valCol },
-            options: { logScale: Boolean(isBigSkew), facetBy: complexity === "complex" && categoricalCols.length > 0 ? categoricalCols[0].name : undefined }
-        });
-    }
-
-    // Rule 3: Compare Categories
-    if (categoricalCols.length > 0 && datasetProfile.numericColumns.length > 0 && (question.includes("compare") || !views.length)) {
-        const catCol = categoricalCols[0].name;
-        const valCol = datasetProfile.numericColumns[0];
-
-        views.push({
-            id: "cat_bar",
-            kind: "bar",
-            dataset: "main",
-            encodings: { x: catCol, y: valCol, color: catCol },
-            options: { topK: 10 }
-        });
-    }
-
-    // Fallback
-    if (views.length === 0) {
-        views.push({
-            id: "fallback_table",
+            id: "detail_1",
             kind: "table",
             dataset: "main",
             encodings: {}

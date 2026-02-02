@@ -1,4 +1,4 @@
-import type { DatasetProfile, ColumnProfile, ColumnType } from "../../../../shared/viz";
+import type { DatasetProfile, ColumnProfile, ColumnType, SemanticType } from "../../../../shared/viz";
 
 export function profileDataset(rows: Record<string, any>[]): DatasetProfile {
     if (rows.length === 0) {
@@ -32,17 +32,19 @@ export function profileDataset(rows: Record<string, any>[]): DatasetProfile {
         const uniqueValues = new Set(values.map(v => String(v)));
         const uniqueCount = uniqueValues.size;
 
-        // Type Inference
+        // Type Inference & Semantics
         let inferredType: ColumnType = "text";
+        let semanticType: SemanticType | undefined;
+        let isDiscrete = false;
 
         // Check for ID
         const isIdLike = uniqueCount === values.length && (key.toLowerCase().includes("id") || key.toLowerCase().endsWith("_key"));
 
         // Check for Date
-        const isDate = values.length > 0 && values.every(v => !isNaN(Date.parse(String(v))) && isNaN(Number(v))); // Crude but effective for now
+        const isDate = values.length > 0 && values.every(v => !isNaN(Date.parse(String(v))) && isNaN(Number(v)));
 
         // Check for Geo
-        const geoKeywords = ["city", "state", "zip", "latitude", "longitude", "lat", "lon", "country"];
+        const geoKeywords = ["city", "state", "zip", "latitude", "longitude", "lat", "lon", "country", "region"];
         const isGeo = geoKeywords.some(k => key.toLowerCase().includes(k));
 
         // Check for Numeric
@@ -52,15 +54,50 @@ export function profileDataset(rows: Record<string, any>[]): DatasetProfile {
         else if (isDate) inferredType = "datetime";
         else if (isNumeric) inferredType = "numeric";
         else if (isGeo) inferredType = "geo";
-        else if (uniqueCount < rowCount * 0.2 || uniqueCount < 20) inferredType = "categorical"; // Heuristic
+        else if (uniqueCount < rowCount * 0.2 || uniqueCount < 20) {
+            inferredType = "categorical";
+            isDiscrete = true;
+        }
+
+        // Semantic Inference (Cognition)
+        const lowerKey = key.toLowerCase();
+
+        if (inferredType === "numeric") {
+            // Currency
+            if (["price", "cost", "revenue", "sales", "val", "amount", "notional"].some(k => lowerKey.includes(k))) {
+                semanticType = "currency";
+            }
+            // Percent / Ratio
+            else if (["rate", "pct", "percent", "share", "ratio", "margin", "yield"].some(k => lowerKey.includes(k))) {
+                semanticType = "percent";
+            }
+            // Uncertainty Boundary
+            else if (["_lower", "_upper", "_min", "_max", "_lo", "_hi", "_ci", "_err"].some(k => lowerKey.endsWith(k))) {
+                semanticType = "uncertainty_bound";
+            }
+            // Ratio (default continuous numeric)
+            else {
+                semanticType = "ratio";
+            }
+        }
+        else if (inferredType === "categorical") {
+            semanticType = "nominal";
+            // TODO: Detect ordinal if values are ["Low", "Medium", "High"] etc.
+        }
 
         // Numeric Stats & Outlier Detection
         let numericStats;
-        let outliers: number[] = []; // Store indices of outliers
+        let outliers: number[] = [];
+        let zeroCount = 0;
 
         if (inferredType === "numeric") {
-            const nums = values.map(v => Number(v)); // Keep original order for indices
+            const nums = values.map(v => Number(v));
             const sortedNums = [...nums].sort((a, b) => a - b);
+
+            // Calc Zeros (Sparsity)
+            zeroCount = nums.filter(n => n === 0).length;
+
+            if (uniqueCount < 20) isDiscrete = true; // Digital numeric (e.g. star rating)
 
             if (sortedNums.length > 0) {
                 const min = sortedNums[0];
@@ -81,7 +118,7 @@ export function profileDataset(rows: Record<string, any>[]): DatasetProfile {
                 const p75 = sortedNums[Math.floor(sortedNums.length * 0.75)] || max;
                 const p90 = sortedNums[Math.floor(sortedNums.length * 0.90)] || max;
 
-                numericStats = { min, max, mean, median, std, skew, p10, p25, p75, p90 };
+                numericStats = { min, max, mean, median, std, skew, p10, p25, p75, p90, zeros: zeroCount };
 
                 // Outlier Detection (Z-Score > 3)
                 if (std > 0) {
@@ -99,11 +136,13 @@ export function profileDataset(rows: Record<string, any>[]): DatasetProfile {
         columns.push({
             name: key,
             inferredType,
+            semanticType,
             missingRate,
             uniqueCount,
             examples: Array.from(uniqueValues).slice(0, 5) as string[],
             numeric: numericStats,
-            outlierCount: outliers.length
+            outlierCount: outliers.length,
+            isDiscrete
         });
 
         if (inferredType === "numeric") numericColumns.push(key);
@@ -114,6 +153,7 @@ export function profileDataset(rows: Record<string, any>[]): DatasetProfile {
 
         if (missingRate > 0.5) warnings.push(`High missingness in ${key} (${(missingRate * 100).toFixed(0)}%)`);
         if (outliers.length > 0) warnings.push(`${key} has ${outliers.length} detected outliers.`);
+        if (zeroCount / rowCount > 0.5) warnings.push(`${key} is sparse (${(zeroCount / rowCount * 100).toFixed(0)}% zeros).`);
     }
 
     // Basic Correlations (Pearson) for top numeric columns (limit to avoid n^2 perf hit on huge data)

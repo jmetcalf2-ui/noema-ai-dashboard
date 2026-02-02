@@ -1,8 +1,13 @@
 export type ColumnType = "numeric" | "categorical" | "datetime" | "geo" | "text" | "id";
 
+export type SemanticType =
+    | "nominal" | "ordinal" | "interval" | "ratio"
+    | "currency" | "percent" | "uncertainty_bound";
+
 export interface ColumnProfile {
     name: string;
     inferredType: ColumnType;
+    semanticType?: SemanticType; // New: deeper cognitive inference
     missingRate: number;
     uniqueCount: number;
     examples: string[];
@@ -17,8 +22,10 @@ export interface ColumnProfile {
         p25: number;
         p75: number;
         p90: number;
+        zeros?: number;
     };
     outlierCount?: number;
+    isDiscrete?: boolean;
 }
 
 export interface DatasetProfile {
@@ -92,9 +99,11 @@ export interface ViewSpec {
     options?: {
         logScale?: boolean;
         showTrendline?: boolean;
-        confidenceBand?: { lower: string; upper: string };
+        confidenceBand?: { lower: string; upper: string; opacity?: number };
+        errorBars?: { field: string; type: "std" | "stderr" | "ci95" };
         topK?: number;
         facetBy?: string;
+        semanticColor?: boolean; // Use semantic palette (e.g. diverging for positive/negative)
     };
     annotations?: Array<{ type: "text" | "line" | "range"; value: any; note: string }>;
 }

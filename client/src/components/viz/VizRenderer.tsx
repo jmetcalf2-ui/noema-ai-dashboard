@@ -14,6 +14,7 @@ import {
     Scatter,
     AreaChart,
     Area,
+    ComposedChart,
 } from "recharts";
 import { Loader2 } from "lucide-react";
 import type { VizPlan, ViewSpec, Transform } from "../../../../shared/viz";
@@ -124,13 +125,23 @@ function ViewComponent({ view, data }: { view: ViewSpec; data: any[] }) {
     if (kind === "line") {
         return (
             <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <ComposedChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                     <XAxis dataKey={encodings.x} tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
                     <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
                     <Tooltip
                         contentStyle={{ backgroundColor: "rgba(0,0,0,0.8)", border: "none", borderRadius: "8px", color: "#fff" }}
                     />
+                    {options?.confidenceBand && (
+                        <Area
+                            type="monotone"
+                            dataKey={(d) => [d[options.confidenceBand!.lower], d[options.confidenceBand!.upper]]}
+                            stroke="none"
+                            fill="hsl(var(--primary))"
+                            fillOpacity={options.confidenceBand.opacity || 0.15}
+                            isAnimationActive={false}
+                        />
+                    )}
                     <Line
                         type="monotone"
                         dataKey={encodings.y}
@@ -139,7 +150,7 @@ function ViewComponent({ view, data }: { view: ViewSpec; data: any[] }) {
                         dot={false}
                         activeDot={{ r: 4 }}
                     />
-                </LineChart>
+                </ComposedChart>
             </ResponsiveContainer>
         );
     }
