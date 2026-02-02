@@ -55,12 +55,18 @@ function Router() {
   );
 }
 
+import { AntigravityBackground } from "@/components/ui/AntigravityBackground";
+
+// ... existing imports
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Router />
-        <Toaster />
+        <AntigravityBackground>
+          <Router />
+          <Toaster />
+        </AntigravityBackground>
       </TooltipProvider>
     </QueryClientProvider>
   );

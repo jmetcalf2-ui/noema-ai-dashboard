@@ -30,6 +30,7 @@ import {
   Database,
   Search,
 } from "lucide-react";
+import { VizPanel } from "@/components/viz/VizPanel";
 
 export default function AnalysisDetail() {
   const [, params] = useRoute("/analyses/:id");
@@ -320,43 +321,52 @@ export default function AnalysisDetail() {
             )}
           </TabsContent>
 
-          <TabsContent value="data" className="mt-0">
+          import {VizPanel} from "@/components/viz/VizPanel";
+
+          // ... existing imports
+
+          // ... inside AnalysisDetail component
+          <TabsContent value="data" className="mt-0 space-y-8">
             {sanitizedData?.rows ? (
-              <Card className="overflow-hidden border-sidebar-border/60">
-                <div className="overflow-x-auto max-h-[600px] overflow-y-auto scrollbar-thin">
-                  <table className="w-full data-grid text-sm text-left">
-                    <thead className="bg-secondary/40 sticky top-0 z-10 backdrop-blur-sm">
-                      <tr>
-                        {sanitizedData.headers.map((header: string, idx: number) => (
-                          <th
-                            key={idx}
-                            className="px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap text-[11px]"
-                          >
-                            {header}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border/40 bg-card">
-                      {sanitizedData.rows.slice(0, 100).map((row: any, rowIdx: number) => (
-                        <tr key={rowIdx} className="hover:bg-muted/30 transition-colors group">
-                          {sanitizedData.headers.map((header: string, colIdx: number) => (
-                            <td key={colIdx} className="px-4 py-2.5 whitespace-nowrap text-foreground/90 tabular-nums">
-                              {row[header] ?? <span className="text-muted-foreground/30">—</span>}
-                            </td>
+              <>
+                <Card className="overflow-hidden border-sidebar-border/60">
+                  <div className="overflow-x-auto max-h-[600px] overflow-y-auto scrollbar-thin">
+                    <table className="w-full data-grid text-sm text-left">
+                      <thead className="bg-secondary/40 sticky top-0 z-10 backdrop-blur-sm">
+                        <tr>
+                          {sanitizedData.headers.map((header: string, idx: number) => (
+                            <th
+                              key={idx}
+                              className="px-4 py-3 font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap text-[11px]"
+                            >
+                              {header}
+                            </th>
                           ))}
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                {sanitizedData.rows.length > 100 && (
-                  <div className="px-4 py-3 bg-secondary/20 text-[12px] text-muted-foreground border-t flex justify-between">
-                    <span>Showing first 100 records</span>
-                    <span>Total: {sanitizedData.rows.length.toLocaleString()}</span>
+                      </thead>
+                      <tbody className="divide-y divide-border/40 bg-card">
+                        {sanitizedData.rows.slice(0, 100).map((row: any, rowIdx: number) => (
+                          <tr key={rowIdx} className="hover:bg-muted/30 transition-colors group">
+                            {sanitizedData.headers.map((header: string, colIdx: number) => (
+                              <td key={colIdx} className="px-4 py-2.5 whitespace-nowrap text-foreground/90 tabular-nums">
+                                {row[header] ?? <span className="text-muted-foreground/30">—</span>}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-                )}
-              </Card>
+                  {sanitizedData.rows.length > 100 && (
+                    <div className="px-4 py-3 bg-secondary/20 text-[12px] text-muted-foreground border-t flex justify-between">
+                      <span>Showing first 100 records</span>
+                      <span>Total: {sanitizedData.rows.length.toLocaleString()}</span>
+                    </div>
+                  )}
+                </Card>
+
+                <VizPanel data={sanitizedData.rows} mode="client_research" />
+              </>
             ) : (
               <div className="flex items-center justify-center h-64 text-muted-foreground">
                 <Loader2 className="w-4 h-4 animate-spin mr-2" />

@@ -5,9 +5,11 @@ import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import multer from "multer";
-import { openai } from "./replit_integrations/image/client"; 
+import { openai } from "./replit_integrations/image/client";
+import { generateVizPlan } from "./lib/viz/planner";
+// ... existing imports
 
-const upload = multer({ 
+const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });
@@ -32,7 +34,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
         userId,
         fileName: req.file.originalname,
         fileType: req.file.mimetype,
-        fileUrl: "stored_in_db", 
+        fileUrl: "stored_in_db",
         content: content,
       });
 
@@ -54,10 +56,10 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     const fileId = parseInt(String(req.params.id));
     const file = await storage.getFile(fileId);
-    
+
     if (!file) return res.status(404).json({ message: "File not found" });
     if (file.userId !== (req.user as any).claims.sub) return res.status(403).json({ message: "Forbidden" });
-    
+
     res.json(file);
   });
 
@@ -65,12 +67,12 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
   app.post(api.analyses.create.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    
+
     try {
       const { fileId } = api.analyses.create.input.parse(req.body);
       const file = await storage.getFile(fileId);
       const userId = (req.user as any).claims.sub;
-      
+
       if (!file) return res.status(404).json({ message: "File not found" });
       if (file.userId !== userId) return res.status(403).json({ message: "Forbidden" });
 
@@ -124,7 +126,7 @@ Generate 2-3 charts that best visualize the most interesting patterns in this da
 
       const rawContent = response.choices[0].message.content || "{}";
       console.log("AI Response received:", rawContent);
-      
+
       const result = JSON.parse(rawContent);
 
       const analysis = await storage.createAnalysis({
@@ -159,10 +161,10 @@ Generate 2-3 charts that best visualize the most interesting patterns in this da
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     const id = parseInt(String(req.params.id));
     const analysis = await storage.getAnalysis(id);
-    
+
     if (!analysis) return res.status(404).json({ message: "Analysis not found" });
     if (analysis.userId !== (req.user as any).claims.sub) return res.status(403).json({ message: "Forbidden" });
-    
+
     res.json(analysis);
   });
 
@@ -244,16 +246,16 @@ Help the user understand their data better. Be concise, specific, and provide ac
 
   app.post(api.projects.create.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    
+
     try {
       const input = api.projects.create.input.parse(req.body);
       const userId = (req.user as any).claims.sub;
-      
+
       const project = await storage.createProject({
         ...input,
         userId,
       });
-      
+
       res.status(201).json(project);
     } catch (e) {
       if (e instanceof z.ZodError) {
@@ -276,10 +278,10 @@ Help the user understand their data better. Be concise, specific, and provide ac
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     const id = parseInt(String(req.params.id));
     const project = await storage.getProject(id);
-    
+
     if (!project) return res.status(404).json({ message: "Project not found" });
     if (project.userId !== (req.user as any).claims.sub) return res.status(403).json({ message: "Forbidden" });
-    
+
     res.json(project);
   });
 
@@ -297,7 +299,7 @@ Help the user understand their data better. Be concise, specific, and provide ac
 
   app.post(api.projects.addAnalysis.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    
+
     try {
       const projectId = parseInt(String(req.params.id));
       const { analysisId } = api.projects.addAnalysis.input.parse(req.body);
@@ -325,7 +327,7 @@ Help the user understand their data better. Be concise, specific, and provide ac
 
   app.delete(api.projects.removeAnalysis.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    
+
     const projectId = parseInt(String(req.params.id));
     const analysisId = parseInt(String(req.params.analysisId));
     const userId = (req.user as any).claims.sub;
@@ -340,7 +342,7 @@ Help the user understand their data better. Be concise, specific, and provide ac
 
   app.get(api.projects.getAnalyses.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    
+
     const projectId = parseInt(String(req.params.id));
     const userId = (req.user as any).claims.sub;
 
@@ -355,7 +357,7 @@ Help the user understand their data better. Be concise, specific, and provide ac
   // Generate AI insights across all analyses in a project
   app.post(api.projects.generateInsights.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    
+
     try {
       const projectId = parseInt(String(req.params.id));
       const userId = (req.user as any).claims.sub;
@@ -365,7 +367,7 @@ Help the user understand their data better. Be concise, specific, and provide ac
       if (project.userId !== userId) return res.status(403).json({ message: "Forbidden" });
 
       const analyses = await storage.getProjectAnalyses(projectId);
-      
+
       if (analyses.length === 0) {
         return res.status(400).json({ message: "Project has no analyses to generate insights from" });
       }
@@ -430,10 +432,10 @@ Focus on insights that would NOT be visible from looking at individual analyses 
   // --- Get file content for analysis ---
   app.get("/api/analyses/:id/data", async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    
+
     const analysisId = parseInt(req.params.id);
     const analysis = await storage.getAnalysis(analysisId);
-    
+
     if (!analysis) return res.status(404).json({ message: "Analysis not found" });
     if (analysis.userId !== (req.user as any).claims.sub) return res.status(403).json({ message: "Forbidden" });
 
@@ -456,6 +458,25 @@ Focus on insights that would NOT be visible from looking at individual analyses 
     });
 
     res.json({ headers, rows: rows.slice(0, 500) }); // Limit to 500 rows for performance
+  });
+
+  // --- Visualization Plan API ---
+  app.post("/api/viz/plan", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+
+    try {
+      // Basic validation - in production use Zod schema for full request
+      const body = req.body;
+      if (!body.datasetProfile || !body.rowsSample) {
+        return res.status(400).json({ message: "Missing datasetProfile or rowsSample" });
+      }
+
+      const plan = generateVizPlan(body);
+      res.json({ plan });
+    } catch (e) {
+      console.error("Viz Plan error:", e);
+      res.status(500).json({ message: "Failed to generate visualization plan" });
+    }
   });
 
   return httpServer;
