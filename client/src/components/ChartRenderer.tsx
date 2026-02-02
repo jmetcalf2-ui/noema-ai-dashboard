@@ -13,6 +13,17 @@ import {
   LineChart,
   Area,
   AreaChart,
+  ScatterChart,
+  Scatter,
+  RadarChart,
+  Radar,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  ComposedChart,
+  ZAxis,
+  Cell,
+  Legend,
   ResponsiveContainer,
 } from "recharts";
 import {
@@ -177,12 +188,14 @@ const DonutChart = React.forwardRef<HTMLDivElement, DonutChartProps>(
 DonutChart.displayName = "DonutChart";
 
 type ChartConfigProp = {
-  type: "bar" | "line" | "pie" | "area" | "horizontal_bar";
+  type: "bar" | "line" | "pie" | "area" | "horizontal_bar" | "scatter" | "radar" | "composed";
   title: string;
   description?: string;
   dataKey: string;
+  secondaryDataKey?: string;
   categoryKey?: string;
   xAxisKey?: string;
+  yAxisKey?: string;
   data: any[];
 };
 
@@ -483,6 +496,163 @@ export function ChartRenderer({ config }: { config: ChartConfigProp }) {
               ))}
             </div>
           </div>
+        );
+
+      case "scatter":
+        const xKey = config.xAxisKey || categoryKey;
+        const yKey = config.yAxisKey || config.dataKey;
+        return (
+          <ChartContainer config={chartConfig} className="h-[300px] w-full">
+            <ScatterChart
+              margin={{ left: 0, right: 20, top: 20, bottom: 10 }}
+            >
+              <defs>
+                <linearGradient id={`scatterGradient-${chartId}`} x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor="#3b82f6" />
+                  <stop offset="100%" stopColor="#6366f1" />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-border/40" />
+              <XAxis
+                dataKey={xKey}
+                type="number"
+                name={xKey}
+                tickLine={false}
+                axisLine={false}
+                tickMargin={10}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 400 }}
+              />
+              <YAxis
+                dataKey={yKey}
+                type="number"
+                name={yKey}
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 400 }}
+                width={50}
+              />
+              <ZAxis range={[60, 200]} />
+              <ChartTooltip
+                cursor={{ strokeDasharray: '3 3' }}
+                content={<ChartTooltipContent />}
+              />
+              <Scatter
+                name={config.title}
+                data={config.data}
+                fill={`url(#scatterGradient-${chartId})`}
+              >
+                {config.data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={getChartColor(index % 5)} fillOpacity={0.8} />
+                ))}
+              </Scatter>
+            </ScatterChart>
+          </ChartContainer>
+        );
+
+      case "radar":
+        const radarDataKey = config.dataKey;
+        const radarSecondaryKey = config.secondaryDataKey;
+        return (
+          <ChartContainer config={chartConfig} className="h-[320px] w-full">
+            <RadarChart cx="50%" cy="50%" outerRadius="75%" data={config.data}>
+              <PolarGrid className="stroke-border/50" />
+              <PolarAngleAxis
+                dataKey={categoryKey}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+              />
+              <PolarRadiusAxis
+                angle={30}
+                domain={[0, 'auto']}
+                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+              />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Radar
+                name={radarDataKey}
+                dataKey={radarDataKey}
+                stroke="#3b82f6"
+                fill="#3b82f6"
+                fillOpacity={0.3}
+                strokeWidth={2}
+              />
+              {radarSecondaryKey && (
+                <Radar
+                  name={radarSecondaryKey}
+                  dataKey={radarSecondaryKey}
+                  stroke="#6366f1"
+                  fill="#6366f1"
+                  fillOpacity={0.2}
+                  strokeWidth={2}
+                />
+              )}
+              <Legend
+                wrapperStyle={{ fontSize: '12px' }}
+              />
+            </RadarChart>
+          </ChartContainer>
+        );
+
+      case "composed":
+        const composedPrimaryKey = config.dataKey;
+        const composedSecondaryKey = config.secondaryDataKey || config.dataKey;
+        return (
+          <ChartContainer config={chartConfig} className="h-[300px] w-full">
+            <ComposedChart
+              data={config.data}
+              margin={{ left: 0, right: 12, top: 16, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient id={`composedBarGradient-${chartId}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.9} />
+                  <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.5} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/40" />
+              <XAxis
+                dataKey={categoryKey}
+                tickLine={false}
+                axisLine={false}
+                tickMargin={10}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 400 }}
+                tickFormatter={(value) => String(value).slice(0, 12)}
+              />
+              <YAxis
+                yAxisId="left"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 400 }}
+                width={50}
+              />
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))', fontWeight: 400 }}
+                width={50}
+              />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Legend wrapperStyle={{ fontSize: '12px' }} />
+              <Bar
+                yAxisId="left"
+                dataKey={composedPrimaryKey}
+                fill={`url(#composedBarGradient-${chartId})`}
+                radius={[4, 4, 0, 0]}
+                maxBarSize={40}
+              />
+              <Line
+                yAxisId="right"
+                type="monotone"
+                dataKey={composedSecondaryKey}
+                stroke="#6366f1"
+                strokeWidth={2.5}
+                dot={{ fill: "#6366f1", strokeWidth: 0, r: 4 }}
+                activeDot={{ r: 6, fill: "#8b5cf6", stroke: 'white', strokeWidth: 2 }}
+              />
+            </ComposedChart>
+          </ChartContainer>
         );
 
       default:
