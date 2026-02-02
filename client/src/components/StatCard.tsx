@@ -61,8 +61,8 @@ export function StatCard({
               <div
                 className={cn(
                   "flex items-center gap-0.5 text-[12px] font-medium px-1.5 py-0.5 rounded",
-                  isPositive && "text-emerald-600 bg-emerald-500/10",
-                  isNegative && "text-red-600 bg-red-500/10",
+                  isPositive && "text-blue-600 bg-blue-500/10",
+                  isNegative && "text-indigo-600 bg-indigo-500/10",
                   isNeutral && "text-muted-foreground bg-muted"
                 )}
               >
@@ -95,7 +95,7 @@ interface ProgressStatProps {
   value: number;
   max?: number;
   format?: "percent" | "number";
-  color?: "blue" | "green" | "purple" | "amber";
+  color?: "blue";
   size?: "sm" | "md" | "lg";
   showValue?: boolean;
   className?: string;
@@ -113,13 +113,6 @@ export function ProgressStat({
 }: ProgressStatProps) {
   const percentage = Math.min((value / max) * 100, 100);
   
-  const colors = {
-    blue: "bg-blue-500",
-    green: "bg-emerald-500",
-    purple: "bg-violet-500",
-    amber: "bg-amber-500",
-  };
-
   const heights = {
     sm: "h-1.5",
     md: "h-2",
@@ -140,7 +133,7 @@ export function ProgressStat({
       </div>
       <div className={cn("w-full bg-secondary rounded-full overflow-hidden", heights[size])}>
         <motion.div
-          className={cn("h-full rounded-full", colors[color])}
+          className="h-full rounded-full bg-blue-500"
           initial={{ width: 0 }}
           animate={{ width: `${percentage}%` }}
           transition={{ duration: 0.8, ease: "easeOut" }}
@@ -156,7 +149,7 @@ interface GaugeProps {
   label?: string;
   size?: number;
   strokeWidth?: number;
-  color?: "blue" | "green" | "purple" | "amber";
+  color?: "blue";
   className?: string;
 }
 
@@ -175,12 +168,7 @@ export function Gauge({
   const halfCircumference = circumference / 2;
   const offset = halfCircumference - (percentage / 100) * halfCircumference;
 
-  const colors = {
-    blue: "#3b82f6",
-    green: "#10b981",
-    purple: "#8b5cf6",
-    amber: "#f59e0b",
-  };
+  const gaugeColor = "#3b82f6";
 
   return (
     <div className={cn("relative inline-flex flex-col items-center", className)}>
@@ -200,7 +188,7 @@ export function Gauge({
         <motion.path
           d={`M ${strokeWidth / 2} ${size / 2} A ${radius} ${radius} 0 0 1 ${size - strokeWidth / 2} ${size / 2}`}
           fill="none"
-          stroke={colors[color]}
+          stroke={gaugeColor}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeDasharray={halfCircumference}

@@ -37,17 +37,11 @@ export function CorrelationMatrix({
   };
 
   const getColor = (value: number) => {
-    if (colorScale === "blue") {
-      const intensity = Math.abs(value);
-      return `rgba(59, 130, 246, ${intensity * 0.8 + 0.1})`;
-    }
-    
+    const intensity = Math.abs(value);
     if (value > 0) {
-      const intensity = value;
       return `rgba(59, 130, 246, ${intensity * 0.8 + 0.1})`;
     } else if (value < 0) {
-      const intensity = Math.abs(value);
-      return `rgba(239, 68, 68, ${intensity * 0.8 + 0.1})`;
+      return `rgba(99, 102, 241, ${intensity * 0.8 + 0.1})`;
     }
     return "rgba(148, 163, 184, 0.2)";
   };
@@ -112,9 +106,9 @@ export function CorrelationMatrix({
         ))}
       </div>
       
-      <div className="flex items-center gap-4 mt-4 text-[11px] text-muted-foreground">
+      <div className="flex flex-wrap items-center gap-4 mt-4 text-[11px] text-muted-foreground">
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-sm bg-red-500/70" />
+          <div className="w-3 h-3 rounded-sm bg-indigo-500/70" />
           <span>Negative</span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -134,7 +128,7 @@ interface HeatmapProps {
   data: { x: string; y: string; value: number }[];
   xLabels?: string[];
   yLabels?: string[];
-  colorScale?: "blue" | "green" | "purple";
+  colorScale?: "blue";
   showValues?: boolean;
   className?: string;
 }
@@ -155,16 +149,10 @@ export function Heatmap({
   const maxValue = Math.max(...values);
   const range = maxValue - minValue || 1;
 
-  const colorScales = {
-    blue: ["rgba(59, 130, 246, 0.1)", "rgba(59, 130, 246, 0.9)"],
-    green: ["rgba(16, 185, 129, 0.1)", "rgba(16, 185, 129, 0.9)"],
-    purple: ["rgba(139, 92, 246, 0.1)", "rgba(139, 92, 246, 0.9)"],
-  };
-
   const getColor = (value: number) => {
     const normalized = (value - minValue) / range;
-    const [startColor, endColor] = colorScales[colorScale];
-    return `color-mix(in srgb, ${endColor} ${normalized * 100}%, ${startColor})`;
+    const opacity = 0.1 + normalized * 0.8;
+    return `rgba(59, 130, 246, ${opacity})`;
   };
 
   const getValue = (x: string, y: string) => {

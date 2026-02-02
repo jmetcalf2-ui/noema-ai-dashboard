@@ -122,3 +122,34 @@ Preferred communication style: Simple, everyday language.
   - `use-projects.ts` - TanStack Query hooks for project CRUD operations
 - **Navigation**: Projects tab added to sidebar between Analyses and Files
 - **Analyses Page**: 3-dot menu on each analysis card with "Add to Project" and "Delete" options
+
+### Advanced Visualization Components (February 2026)
+Inspired by hal9ai/awesome-dataviz, the following visualization components have been added:
+
+- **Chart Types in ChartRenderer**:
+  - `bar` - Vertical bar charts with blue gradient
+  - `line` - Line charts with blue to indigo gradient
+  - `area` - Area charts with gradient fill
+  - `pie` - Animated donut charts with blue-purple spectrum
+  - `horizontal_bar` - Horizontal bar charts
+  - `scatter` - Scatter plots for correlation analysis
+  - `radar` - Radar/spider charts for multi-dimensional comparisons
+  - `composed` - Combined bar and line charts for multi-metric analysis
+
+- **Sparkline Components** (`Sparkline.tsx`):
+  - `Sparkline` - Compact line sparklines with trend detection
+  - `SparkBar` - Compact bar sparklines with trend coloring
+
+- **Matrix/Heatmap Components** (`CorrelationMatrix.tsx`):
+  - `CorrelationMatrix` - Shows correlations between variables with diverging color scale
+  - `Heatmap` - General purpose heatmap for activity/density visualization
+
+- **Stat Components** (`StatCard.tsx`):
+  - `StatCard` - Metric card with sparkline trend visualization
+  - `ProgressStat` - Progress bar with labels and percentage
+  - `Gauge` - Semi-circular gauge for progress/performance indicators
+
+- **Visualization Showcase Page** (`/visualizations`):
+  - Demonstrates all available chart types and components
+  - Interactive examples with sample data
+  - Accessible via "Charts" link in sidebar navigation

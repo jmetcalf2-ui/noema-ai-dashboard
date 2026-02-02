@@ -1,7 +1,7 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Link, useLocation } from "wouter";
 import { useAnalyses } from "@/hooks/use-analyses";
-import { Home, BarChart3, FolderOpen, Layers } from "lucide-react";
+import { Home, BarChart3, FolderOpen, Layers, PieChart } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -32,6 +32,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { href: "/analyses", label: "Analyses", icon: BarChart3 },
     { href: "/projects", label: "Projects", icon: Layers },
     { href: "/files", label: "Files", icon: FolderOpen },
+    { href: "/visualizations", label: "Charts", icon: PieChart },
   ];
 
   const recentAnalyses = (analyses || []).slice(0, 5);

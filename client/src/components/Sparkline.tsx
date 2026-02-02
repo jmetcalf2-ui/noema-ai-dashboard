@@ -51,8 +51,7 @@ export function Sparkline({
 
   const areaD = `${pathD} L ${points[points.length - 1].x} ${padding + chartHeight} L ${points[0].x} ${padding + chartHeight} Z`;
 
-  const trend = data[data.length - 1] > data[0] ? "up" : data[data.length - 1] < data[0] ? "down" : "neutral";
-  const trendColor = trend === "up" ? "#10b981" : trend === "down" ? "#ef4444" : color;
+  const trendColor = color;
 
   return (
     <svg
@@ -112,7 +111,6 @@ interface SparkBarProps {
   height?: number;
   gap?: number;
   color?: string;
-  showTrend?: boolean;
   className?: string;
 }
 
@@ -122,7 +120,6 @@ export function SparkBar({
   height = 32,
   gap = 2,
   color = "#3b82f6",
-  showTrend = true,
   className,
 }: SparkBarProps) {
   if (!data || data.length === 0) return null;
@@ -132,10 +129,7 @@ export function SparkBar({
   const chartHeight = height - padding * 2;
   const barWidth = (width - padding * 2 - gap * (data.length - 1)) / data.length;
 
-  const trend = data[data.length - 1] > data[0] ? "up" : data[data.length - 1] < data[0] ? "down" : "neutral";
-  const trendColor = showTrend 
-    ? (trend === "up" ? "#10b981" : trend === "down" ? "#ef4444" : color)
-    : color;
+  const trendColor = color;
 
   return (
     <svg
