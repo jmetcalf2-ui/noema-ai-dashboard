@@ -1,6 +1,6 @@
 import { DataFrame } from "../core/data_engine";
 import { IVizSpec } from "../core/grammar";
-import { LinearScale } from "./scales"; // Local import
+import { LinearScale, BandScale, OrdinalPointScale } from "./scales";
 
 export class NoemaRenderer {
     private canvas: HTMLCanvasElement;
@@ -80,7 +80,7 @@ export class NoemaRenderer {
         ctx.fillRect(0, 0, width, height);
 
         // Margins
-        const margin = { top: 40, right: 20, bottom: 40, left: 50 };
+        const margin = { top: 40, right: 20, bottom: 60, left: 60 };
 
         // 1. Get Columns
         const xEnc = spec.encodings.x;
@@ -94,38 +94,69 @@ export class NoemaRenderer {
         const xIdx = xCol.values;
         const yIdx = yCol.values;
 
-        // 2. Compute Domains (Naive)
-        // TODO: move to a DataView prepared class
-        let xMin = Infinity, xMax = -Infinity;
-        let yMin = Infinity, yMax = -Infinity;
+        // 2. Detect data types and compute domains
+        const xIsNumeric = typeof xIdx[0] === 'number';
+        const yIsNumeric = typeof yIdx[0] === 'number';
+
+        let xScale: LinearScale | BandScale | OrdinalPointScale;
+        let yScale: LinearScale;
         const validIndices: number[] = [];
 
-        for (let i = 0; i < xIdx.length; i++) {
-            const vx = xIdx[i] as number;
-            const vy = yIdx[i] as number;
-            if (typeof vx === 'number' && typeof vy === 'number') {
-                if (vx < xMin) xMin = vx;
-                if (vx > xMax) xMax = vx;
+        // Y-axis (always numeric for now)
+        let yMin = Infinity, yMax = -Infinity;
+        for (let i = 0; i < yIdx.length; i++) {
+            const vy = yIdx[i];
+            if (typeof vy === 'number' && !isNaN(vy)) {
                 if (vy < yMin) yMin = vy;
                 if (vy > yMax) yMax = vy;
                 validIndices.push(i);
             }
         }
 
-        if (xMin === Infinity) { xMin = 0; xMax = 100; }
         if (yMin === Infinity) { yMin = 0; yMax = 100; }
+        const yPad = (yMax - yMin) * 0.1;
+        yScale = new LinearScale([Math.min(0, yMin - yPad), yMax + yPad], [height - margin.bottom, margin.top]);
 
-        const xPad = (xMax - xMin) * 0.05;
-        const yPad = (yMax - yMin) * 0.05;
+        // X-axis (numeric or categorical)
+        if (xIsNumeric) {
+            // Numeric X
+            let xMin = Infinity, xMax = -Infinity;
+            const numericValidIndices: number[] = [];
 
-        // 3. Create Scales
-        const xScale = new LinearScale([xMin - xPad, xMax + xPad], [margin.left, width - margin.right]);
-        const yScale = new LinearScale([yMin - yPad, yMax + yPad], [height - margin.bottom, margin.top]);
+            for (let i = 0; i < xIdx.length; i++) {
+                const vx = xIdx[i];
+                if (typeof vx === 'number' && !isNaN(vx) && validIndices.includes(i)) {
+                    if (vx < xMin) xMin = vx;
+                    if (vx > xMax) xMax = vx;
+                    numericValidIndices.push(i);
+                }
+            }
+
+            validIndices.length = 0;
+            validIndices.push(...numericValidIndices);
+
+            if (xMin === Infinity) { xMin = 0; xMax = 100; }
+            const xPad = (xMax - xMin) * 0.05;
+            xScale = new LinearScale([xMin - xPad, xMax + xPad], [margin.left, width - margin.right]);
+        } else {
+            // Categorical X
+            const categoricalValidIndices = validIndices.filter(i => xIdx[i] != null && xIdx[i] !== '');
+            validIndices.length = 0;
+            validIndices.push(...categoricalValidIndices);
+
+            const uniqueCategories = Array.from(new Set(xIdx.filter(v => v != null && v !== '').map(String)));
+
+            if (spec.mark === 'rect') {
+                xScale = new BandScale(uniqueCategories, [margin.left, width - margin.right], 0.2);
+            } else {
+                xScale = new OrdinalPointScale(uniqueCategories, [margin.left, width - margin.right]);
+            }
+        }
 
         // 4. Draw Axes
         ctx.strokeStyle = "#e5e7eb";
         ctx.lineWidth = 1;
-        ctx.font = "10px Inter, sans-serif";
+        ctx.font = "11px Inter, sans-serif";
         ctx.fillStyle = "#6b7280";
 
         // X Axis
@@ -140,90 +171,128 @@ export class NoemaRenderer {
         ctx.lineTo(margin.left, height - margin.bottom);
         ctx.stroke();
 
-        // Labels
-        ctx.fillText(xMin.toFixed(1), margin.left, height - margin.bottom + 15);
-        ctx.fillText(xMax.toFixed(1), width - margin.right - 20, height - margin.bottom + 15);
-        ctx.fillText(yMin.toFixed(1), 5, height - margin.bottom);
-        ctx.fillText(yMax.toFixed(1), 5, margin.top);
+        // Y-axis labels
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(yMin.toFixed(0), margin.left - 10, height - margin.bottom);
+        ctx.fillText(yMax.toFixed(0), margin.left - 10, margin.top);
+
+        // X-axis labels
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+
+        if (xScale instanceof BandScale || xScale instanceof OrdinalPointScale) {
+            const categories = Array.from(new Set(xIdx.filter(v => v != null && v !== '').map(String)));
+            categories.forEach((cat, idx) => {
+                const x = xScale.map(cat);
+                ctx.save();
+                ctx.translate(x, height - margin.bottom + 5);
+                ctx.rotate(-Math.PI / 6); // 30-degree tilt
+                ctx.fillText(cat.length > 12 ? cat.substring(0, 12) + '...' : cat, 0, 0);
+                ctx.restore();
+            });
+        } else if (xScale instanceof LinearScale) {
+            const xDomain = (xScale as any)._domain;
+            ctx.fillText(xDomain[0].toFixed(1), margin.left, height - margin.bottom + 5);
+            ctx.fillText(xDomain[1].toFixed(1), width - margin.right, height - margin.bottom + 5);
+        }
 
         // Title
         if (spec.layout?.title) {
             ctx.fillStyle = "#111827";
             ctx.font = "bold 14px Inter, sans-serif";
-            ctx.fillText(spec.layout.title, margin.left, margin.top - 20);
+            ctx.textAlign = 'left';
+            ctx.fillText(spec.layout.title, margin.left, 20);
         }
 
         // 5. Draw Marks
         ctx.fillStyle = "#3b82f6";
         ctx.strokeStyle = "#3b82f6";
         ctx.lineWidth = 2;
-        ctx.globalAlpha = 0.8;
+        ctx.globalAlpha = 0.85;
 
         if (spec.mark === 'point') {
             for (const i of validIndices) {
-                const cx = xScale.map(xIdx[i] as number);
-                const cy = yScale.map(yIdx[i] as number);
+                const xVal = xIdx[i];
+                const yVal = yIdx[i] as number;
+
+                const cx = (xScale instanceof LinearScale)
+                    ? xScale.map(xVal as number)
+                    : xScale.map(String(xVal));
+                const cy = yScale.map(yVal);
 
                 ctx.beginPath();
-                ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+                ctx.arc(cx, cy, 4, 0, Math.PI * 2);
                 ctx.fill();
             }
         }
         else if (spec.mark === 'line') {
-            // Simple line render (assumes sorted by X for now, or just connects points)
-            // Ideally should sort by X
-            const sortedIndices = [...validIndices].sort((a, b) => (xIdx[a] as number) - (xIdx[b] as number));
+            if (xScale instanceof LinearScale) {
+                const sortedIndices = [...validIndices].sort((a, b) => (xIdx[a] as number) - (xIdx[b] as number));
 
-            if (sortedIndices.length > 0) {
-                ctx.beginPath();
-                const startX = xScale.map(xIdx[sortedIndices[0]] as number);
-                const startY = yScale.map(yIdx[sortedIndices[0]] as number);
-                ctx.moveTo(startX, startY);
+                if (sortedIndices.length > 0) {
+                    ctx.beginPath();
+                    const startX = xScale.map(xIdx[sortedIndices[0]] as number);
+                    const startY = yScale.map(yIdx[sortedIndices[0]] as number);
+                    ctx.moveTo(startX, startY);
 
-                for (let i = 1; i < sortedIndices.length; i++) {
-                    const idx = sortedIndices[i];
-                    const cx = xScale.map(xIdx[idx] as number);
-                    const cy = yScale.map(yIdx[idx] as number);
-                    ctx.lineTo(cx, cy);
+                    for (let i = 1; i < sortedIndices.length; i++) {
+                        const idx = sortedIndices[i];
+                        const cx = xScale.map(xIdx[idx] as number);
+                        const cy = yScale.map(yIdx[idx] as number);
+                        ctx.lineTo(cx, cy);
+                    }
+                    ctx.stroke();
+
+                    // Points on top
+                    ctx.fillStyle = "white";
+                    ctx.lineWidth = 2;
+                    for (const i of sortedIndices) {
+                        const cx = xScale.map(xIdx[i] as number);
+                        const cy = yScale.map(yIdx[i] as number);
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.stroke();
+                    }
                 }
-                ctx.stroke();
-            }
+            } else {
+                // Ordinal line chart
+                const categories = Array.from(new Set(xIdx.filter(v => v != null && v !== '').map(String)));
 
-            // Render points on top? Optional.
-            ctx.fillStyle = "white";
-            ctx.strokeStyle = "#3b82f6";
-            ctx.lineWidth = 2;
-            for (const i of sortedIndices) {
-                const cx = xScale.map(xIdx[i] as number);
-                const cy = yScale.map(yIdx[i] as number);
-                ctx.beginPath();
-                ctx.arc(cx, cy, 3, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.stroke();
+                if (validIndices.length > 0) {
+                    ctx.beginPath();
+                    const firstCat = String(xIdx[validIndices[0]]);
+                    const startX = xScale.map(firstCat);
+                    const startY = yScale.map(yIdx[validIndices[0]] as number);
+                    ctx.moveTo(startX, startY);
+
+                    for (let i = 1; i < validIndices.length; i++) {
+                        const idx = validIndices[i];
+                        const cx = xScale.map(String(xIdx[idx]));
+                        const cy = yScale.map(yIdx[idx] as number);
+                        ctx.lineTo(cx, cy);
+                    }
+                    ctx.stroke();
+                }
             }
         }
         else if (spec.mark === 'rect') {
-            // Bar chart
-            const bandwidth = (width - margin.left - margin.right) / validIndices.length * 0.8;
-            const maxBarWidth = 40;
-            const barWidth = Math.min(bandwidth, maxBarWidth);
+            if (xScale instanceof BandScale) {
+                const bandwidth = xScale.bandwidth();
 
-            // For categorical X, we might need an ordinal scale. 
-            // Current LinearScale maps numbers. If X is string -> ordinal mapping needed.
-            // For strictly quantitative X (histogram-like), linear is fine.
-            // ADAPTER NOTE: adapter maps Nominal X. Renderer currently naive.
-            // Fix: If X is string/nominal, simple band logic here or rely on scale.
+                for (const i of validIndices) {
+                    const xVal = String(xIdx[i]);
+                    const yVal = yIdx[i] as number;
 
-            for (const i of validIndices) {
-                let cx = xScale.map(xIdx[i] as number);
-                // If scale is ordinal (not impl yet), we'd get band center.
+                    const cx = xScale.map(xVal);
+                    const cy = yScale.map(yVal);
+                    const yZero = yScale.map(0);
 
-                const cy = yScale.map(yIdx[i] as number);
-                const yZero = yScale.map(0); // Baseline
+                    const h = yZero - cy;
 
-                const h = yZero - cy;
-
-                ctx.fillRect(cx - barWidth / 2, cy, barWidth, h);
+                    ctx.fillRect(cx, cy, bandwidth, h);
+                }
             }
         }
     }
