@@ -3,7 +3,7 @@
  * Pure computation functions for data analysis
  */
 
-import { DataFrame } from './data_engine';
+import { DataFrame } from '../data_engine';
 
 /**
  * Compute basic statistics for a numeric column

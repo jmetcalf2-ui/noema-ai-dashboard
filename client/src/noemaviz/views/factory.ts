@@ -21,9 +21,9 @@ export function profileDataset(data: DataFrame): DatasetProfile {
     const datetimeColumns: string[] = [];
     const geoColumns: string[] = [];
 
-    for (const column of data.columns) {
+    for (const column of data.getColumns()) {
         const values = column.values;
-        const sampleValue = values.find(v => v != null);
+        const sampleValue: any = values.find((v: any) => v != null);
 
         if (typeof sampleValue === 'number') {
             numericColumns.push(column.name);

@@ -43,10 +43,10 @@ export class SemanticColumn {
     this.name = name;
     this.data = data;
     this.type = type === SemanticType.Unknown ? this.inferType(data) : type;
-    
+
     // Calculate missingness automatically
     const missingCount = data.filter((v) => v === null || v === undefined || v === "").length;
-    
+
     this.epistemic = {
       reliability: epistemic?.reliability ?? 1.0, // Assume reliable unless stated otherwise
       missingness: missingCount / data.length,
@@ -75,7 +75,7 @@ export class SemanticColumn {
 
     // Check for Dates
     const isDate = sample.every((v) => v instanceof Date || !isNaN(Date.parse(String(v))));
-    if (isDate && sample.some(v => typeof v !== 'number')) return SemanticType.Temporal; 
+    if (isDate && sample.some(v => typeof v !== 'number')) return SemanticType.Temporal;
 
     // Check for Numbers
     const isNumber = sample.every((v) => typeof v === "number" || (!isNaN(Number(v)) && String(v).trim() !== ""));
@@ -136,6 +136,10 @@ export class DataFrame {
 
   public getColumnNames(): string[] {
     return Array.from(this.columns.keys());
+  }
+
+  public getColumns(): SemanticColumn[] {
+    return Array.from(this.columns.values());
   }
 
   public get dimensions(): { rows: number; cols: number } {

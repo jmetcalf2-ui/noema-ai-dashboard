@@ -33,4 +33,4 @@ export interface RenderConfig {
 
 // Re-export from existing files for convenience
 export type { DataFrame, SemanticColumn, SemanticType } from './data_engine';
-export type { IVizSpec, VizMark, IEncoding } from './grammar';
+export type { IVizSpec, VizMark, VizEncoding } from './grammar';
