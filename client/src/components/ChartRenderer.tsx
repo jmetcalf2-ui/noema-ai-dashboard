@@ -36,6 +36,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { ChevronRight, TrendingDown, TrendingUp } from "lucide-react";
+import { NoemaAdapter } from "../noemaviz/integrate/adapter";
 
 export interface DonutChartSegment {
   value: number;
@@ -202,6 +203,7 @@ type ChartConfigProp = {
   yAxisKey?: string;
   data: any[];
   enableBrush?: boolean;
+  useNoemaEngine?: boolean;
 };
 
 const BLUE_GRADIENT_COLORS = [
@@ -250,6 +252,10 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 export function ChartRenderer({ config }: { config: ChartConfigProp }) {
   const [hoveredSegment, setHoveredSegment] = React.useState<DonutChartSegment | null>(null);
   const chartId = React.useId().replace(/:/g, "");
+
+  if (config.useNoemaEngine) {
+    return <NoemaAdapter config={config} className="h-[280px] w-full" />;
+  }
 
   if (!config || !config.data || config.data.length === 0) {
     return (

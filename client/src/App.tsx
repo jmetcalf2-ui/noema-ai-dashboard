@@ -17,6 +17,8 @@ import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 
+import DebugNoema from "@/pages/DebugNoema";
+
 function Router() {
   const { user, isLoading } = useAuth();
 
@@ -33,6 +35,7 @@ function Router() {
       <Switch>
         <Route path="/" component={Landing} />
         <Route path="/pricing" component={PricingPage} />
+        <Route path="/debug-noema" component={DebugNoema} />
         <Route component={NotFound} />
       </Switch>
     );
@@ -42,6 +45,7 @@ function Router() {
     <Switch>
       <Route path="/pricing" component={PricingPage} />
       <Route path="/checkout/success" component={CheckoutSuccess} />
+      <Route path="/debug-noema" component={DebugNoema} />
       <Route>
         <Layout>
           <Switch>
