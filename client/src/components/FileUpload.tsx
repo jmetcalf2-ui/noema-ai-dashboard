@@ -194,7 +194,7 @@ export function FileUpload({ onUploadComplete }: { onUploadComplete?: () => void
             CSV, XLS, XLSX
           </span>
           <span className="text-muted-foreground/30">·</span>
-          <span>Up to 5MB</span>
+          <span>Up to 1GB</span>
         </div>
       </label>
       

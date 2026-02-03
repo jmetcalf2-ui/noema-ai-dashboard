@@ -98,6 +98,15 @@ export function categorizeInsight(text: string): {
   importance: "high" | "medium" | "low";
   whyItMatters: string;
 } {
+  // Defensive check for undefined/null text
+  if (!text || typeof text !== "string") {
+    return {
+      category: "finding",
+      importance: "medium",
+      whyItMatters: "This finding may require further analysis."
+    };
+  }
+  
   const lowerText = text.toLowerCase();
   
   // Determine category

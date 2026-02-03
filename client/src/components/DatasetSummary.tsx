@@ -141,12 +141,12 @@ export function DatasetSummary({ headers, rows }: DatasetSummaryProps) {
   };
 
   return (
-    <Card className="p-5">
-      <div className="flex items-center gap-2 mb-4">
-        <span className="text-[13px] font-medium text-muted-foreground">Dataset Overview</span>
+    <Card className="p-6">
+      <div className="flex items-center gap-2 mb-5">
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Dataset Overview</span>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-md bg-secondary flex items-center justify-center">
             <Rows3 className="w-4 h-4 text-muted-foreground" />
@@ -186,21 +186,21 @@ export function DatasetSummary({ headers, rows }: DatasetSummaryProps) {
       </div>
 
       {stats.qualityFlags.length > 0 && (
-        <div className="space-y-2 mb-5 pb-5 border-b">
-          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Data Quality</span>
-          <div className="space-y-1.5">
+        <div className="space-y-3 mt-6 pt-5 border-t border-border/50">
+          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Data Quality</span>
+          <div className="space-y-2">
             {stats.qualityFlags.map((flag, idx) => (
               <div 
                 key={idx} 
                 className={cn(
-                  "flex items-center gap-2 text-[12px] px-3 py-2 rounded-md",
+                  "flex items-center gap-3 text-xs px-4 py-3 rounded-md",
                   flag.type === "warning" 
-                    ? "text-amber-700 bg-amber-50 dark:text-amber-400 dark:bg-amber-950/30" 
+                    ? "text-blue-700 bg-blue-50 dark:text-blue-400 dark:bg-blue-950/30" 
                     : "text-slate-600 bg-slate-50 dark:text-slate-400 dark:bg-slate-800/30"
                 )}
               >
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                {flag.message}
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{flag.message}</span>
               </div>
             ))}
           </div>

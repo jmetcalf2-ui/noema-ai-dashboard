@@ -1,7 +1,8 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Link, useLocation } from "wouter";
 import { useAnalyses } from "@/hooks/use-analyses";
-import { Home, BarChart3, FolderOpen, Layers, ChevronRight, LogOut, User } from "lucide-react";
+import { useSubscription, isSubscriptionActive, useCustomerPortal } from "@/hooks/use-subscription";
+import { Home, BarChart3, FolderOpen, Layers, ChevronRight, LogOut, Sparkles, CreditCard, Loader2 } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -28,8 +29,12 @@ import {
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const { data: analyses } = useAnalyses();
+  const { data: subscriptionData } = useSubscription();
+  const customerPortal = useCustomerPortal();
+  
+  const isPro = isSubscriptionActive(subscriptionData?.status);
 
   if (!user) {
     return <>{children}</>;
@@ -37,7 +42,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   const navItems = [
     { href: "/", label: "Overview", icon: Home },
-    { href: "/analyses", label: "Analysis", icon: BarChart3 },
+    { href: "/analyses", label: "Analyses", icon: BarChart3 },
     { href: "/projects", label: "Projects", icon: Layers },
     { href: "/files", label: "Files", icon: FolderOpen },
   ];
@@ -47,7 +52,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   // Helper to generate breadcrumb text based on current path
   const getBreadcrumb = () => {
     if (location === "/" || location === "/dashboard") return "Overview";
-    if (location.startsWith("/analyses")) return "Analysis";
+    if (location.startsWith("/analyses")) return "Analyses";
     if (location.startsWith("/projects")) return "Projects";
     if (location.startsWith("/files")) return "Files";
     return "Dashboard";
@@ -57,14 +62,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <SidebarProvider>
       <div className="flex h-screen w-full bg-background">
         <Sidebar className="border-r border-sidebar-border/60">
-          <SidebarHeader className="h-14 border-b border-sidebar-border/40 px-4 flex items-center justify-between">
+          <SidebarHeader className="h-14 border-b border-sidebar-border/40 px-4 !flex !flex-row !items-center !justify-start">
             <Link href="/">
-              <div className="flex items-center gap-2 font-semibold tracking-tight text-sidebar-foreground">
-                <div className="w-5 h-5 bg-primary rounded-sm flex items-center justify-center">
-                  <div className="w-2.5 h-2.5 bg-primary-foreground rounded-full" />
-                </div>
-                <span>Noema</span>
-              </div>
+              <span className="font-semibold tracking-tight text-foreground">Noema Research</span>
             </Link>
           </SidebarHeader>
 
@@ -81,13 +81,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       (item.href !== "/" && location.startsWith(item.href));
                     return (
                       <SidebarMenuItem key={item.href}>
-                        <SidebarMenuButton
-                          asChild
+                        <SidebarMenuButton 
+                          asChild 
                           isActive={isActive}
                           className={`
                             h-9 text-[13px] font-medium transition-all duration-200
-                            ${isActive
-                              ? "bg-sidebar-accent text-sidebar-primary-foreground font-semibold shadow-sm"
+                            ${isActive 
+                              ? "bg-sidebar-accent text-sidebar-primary-foreground font-semibold shadow-sm" 
                               : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50"
                             }
                           `}
@@ -116,8 +116,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       const title = analysis.title.replace("Analysis: ", "");
                       return (
                         <SidebarMenuItem key={analysis.id}>
-                          <SidebarMenuButton
-                            asChild
+                          <SidebarMenuButton 
+                            asChild 
                             isActive={isActive}
                             className="h-8 text-[13px] text-muted-foreground hover:text-foreground"
                           >
@@ -134,10 +134,20 @@ export function Layout({ children }: { children: React.ReactNode }) {
             )}
           </SidebarContent>
 
-          <SidebarFooter className="p-3 border-t border-sidebar-border/40">
+          <SidebarFooter className="p-3 border-t border-sidebar-border/40 space-y-2">
+            {!isPro && (
+              <button
+                onClick={() => setLocation("/pricing")}
+                className="flex items-center gap-2 w-full p-2.5 rounded-md bg-primary/10 hover:bg-primary/20 transition-colors text-sm font-medium text-primary"
+                data-testid="button-upgrade"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Upgrade to Pro</span>
+              </button>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-3 w-full p-2 rounded-md hover:bg-sidebar-accent transition-colors group">
+                <button className="flex items-center gap-3 w-full p-2 rounded-md hover:bg-sidebar-accent transition-colors group" data-testid="button-user-menu">
                   <Avatar className="w-8 h-8 rounded-md border border-sidebar-border">
                     <AvatarFallback className="text-xs font-medium bg-sidebar-accent text-sidebar-foreground">
                       {user.firstName?.[0]?.toUpperCase() || "U"}
@@ -147,11 +157,27 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     <span className="font-medium text-sidebar-foreground group-hover:text-foreground transition-colors">
                       {user.firstName || "User"}
                     </span>
-                    <span className="text-[10px] text-muted-foreground">Pro Plan</span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {isPro ? "Pro Plan" : "Free Plan"}
+                    </span>
                   </div>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg pointer-events-auto">
+                {isPro && (
+                  <DropdownMenuItem 
+                    onClick={() => customerPortal.mutate()} 
+                    className="cursor-pointer"
+                    disabled={customerPortal.isPending}
+                  >
+                    {customerPortal.isPending ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <CreditCard className="mr-2 h-4 w-4" />
+                    )}
+                    <span>Manage Billing</span>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={() => logout()} className="text-red-500 focus:text-red-500 cursor-pointer">
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
@@ -169,7 +195,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-2">
               <SidebarTrigger className="-ml-2 h-8 w-8 text-muted-foreground hover:text-foreground lg:hidden" />
               <div className="flex items-center text-sm">
-                <span className="text-muted-foreground/60 font-medium">Noema</span>
+                <span className="text-muted-foreground/60 font-medium">Noema Research</span>
                 <ChevronRight className="w-4 h-4 mx-1 text-muted-foreground/40" />
                 <span className="text-foreground font-medium">{getBreadcrumb()}</span>
               </div>

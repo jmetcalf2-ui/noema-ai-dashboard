@@ -10,8 +10,9 @@ import AnalysesPage from "@/pages/AnalysesPage";
 import AnalysisDetail from "@/pages/AnalysisDetail";
 import ProjectsPage from "@/pages/ProjectsPage";
 import ProjectDetail from "@/pages/ProjectDetail";
-// Removed VisualizationShowcase import as part of cleanup
 import Landing from "@/pages/Landing";
+import PricingPage from "@/pages/PricingPage";
+import CheckoutSuccess from "@/pages/CheckoutSuccess";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
@@ -21,52 +22,50 @@ function Router() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
-  // Public route
   if (!user) {
     return (
       <Switch>
         <Route path="/" component={Landing} />
+        <Route path="/pricing" component={PricingPage} />
         <Route component={NotFound} />
       </Switch>
     );
   }
 
-  // Protected routes
   return (
-    <Layout>
-      <Switch>
-        <Route path="/" component={Dashboard} />
-        <Route path="/dashboard" component={Dashboard} />
-        <Route path="/files" component={FilesPage} />
-        <Route path="/analyses" component={AnalysesPage} />
-        <Route path="/analyses/:id" component={AnalysisDetail} />
-        <Route path="/projects" component={ProjectsPage} />
-        <Route path="/projects/:id" component={ProjectDetail} />
-        {/* Route removed */}
-        <Route component={NotFound} />
-      </Switch>
-    </Layout>
+    <Switch>
+      <Route path="/pricing" component={PricingPage} />
+      <Route path="/checkout/success" component={CheckoutSuccess} />
+      <Route>
+        <Layout>
+          <Switch>
+            <Route path="/" component={Dashboard} />
+            <Route path="/dashboard" component={Dashboard} />
+            <Route path="/files" component={FilesPage} />
+            <Route path="/analyses" component={AnalysesPage} />
+            <Route path="/analyses/:id" component={AnalysisDetail} />
+            <Route path="/projects" component={ProjectsPage} />
+            <Route path="/projects/:id" component={ProjectDetail} />
+            <Route component={NotFound} />
+          </Switch>
+        </Layout>
+      </Route>
+    </Switch>
   );
 }
-
-import { AntigravityBackground } from "@/components/ui/AntigravityBackground";
-
-// ... existing imports
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <AntigravityBackground>
-          <Router />
-          <Toaster />
-        </AntigravityBackground>
+        <Router />
+        <Toaster />
       </TooltipProvider>
     </QueryClientProvider>
   );

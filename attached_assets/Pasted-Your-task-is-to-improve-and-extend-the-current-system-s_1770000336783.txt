@@ -1,0 +1,234 @@
+Your task is to improve and extend the current system so it produces far more useful insights for complex datasets and presents them in a better analytical layout.
+
+If you do not see files immediately relevant, search the repo first before writing new ones.
+
+OBJECTIVE
+
+The current app has three critical limitations:
+
+It always produces exactly 3 insights, even for complex datasets.
+
+It renders insights as bento boxes, which compress analysis and hide depth.
+
+It uses large, generic charts, instead of small, niche, diagnostic charts.
+
+Your job is to remove these limitations without breaking existing functionality.
+
+NON-NEGOTIABLE CHANGES
+1. Remove the fixed “3 insights” limit
+
+Find and remove any hardcoded logic that caps insights at 3.
+
+Replace it with adaptive insight budgeting based on dataset complexity.
+
+Insight budget rules:
+
+Simple datasets → 5–7 insights
+
+Moderate datasets → 8–12 insights
+
+Complex datasets → 12–20 insights
+
+Hard cap at 24 unless user explicitly requests more
+
+The insight count must be computed dynamically per dataset.
+
+2. Replace bento boxes with a long, scrollable report layout
+
+Do NOT use grids of equal-sized cards.
+
+Convert insights into stacked vertical sections (report-style).
+
+The page should extend vertically and encourage scrolling.
+
+Required layout:
+
+Header: dataset name, row count, column count
+
+“Dataset fingerprint” section:
+
+type mix
+
+missingness summary
+
+warnings
+
+Sticky table of contents with jump links to each insight
+
+Insights rendered sequentially down the page
+
+Progressive disclosure:
+
+First 8 insights expanded by default
+
+Remaining insights collapsed with a one-line summary + “Expand”
+
+3. Switch from large charts to small, niche, insightful charts
+
+Stop using big dashboard-style charts unless absolutely necessary.
+
+Instead, implement or refactor charts into compact micro-visualizations:
+
+Default chart height: 140–220px
+
+Charts should answer one specific question, not many
+
+Preferred chart types:
+
+Sparkline (time trends)
+
+Small histogram with quantile markers
+
+Mini box-plot strips (top categories)
+
+Binned scatter / residual strip (nonlinear relationships)
+
+Missingness heat strip
+
+Ranked bar micro-chart (top 10 only)
+
+Uncertainty band (mean + p10/p90)
+
+Outlier dot strip (relative to median/IQR)
+
+Each chart should be:
+
+narrow in scope
+
+fast to read
+
+paired with text explaining why it matters
+
+INSIGHT GENERATION IMPROVEMENTS
+4. Implement or extend a Dataset Profiler
+
+If one exists, improve it. If not, add it.
+
+Profiler must compute:
+
+column types (numeric, categorical, datetime, geo, id, text)
+
+missingness per column
+
+cardinality per column
+
+numeric distribution stats
+
+correlations among numeric columns
+
+time signal detection
+
+geo signal detection
+
+Return a reusable DatasetProfile.
+
+5. Generate MANY insight candidates, then select the best
+
+Instead of generating a fixed number, do this:
+
+Generate many candidate insights across families.
+
+Score them by usefulness.
+
+Enforce diversity.
+
+Select the top N based on insight budget.
+
+Required insight families:
+
+distribution anomalies
+
+outliers with context
+
+missingness patterns
+
+strong relationships (linear + nonlinear)
+
+category drivers of numeric variance
+
+time dynamics (regime change, volatility)
+
+geo patterns (if applicable)
+
+segmentation / clusters (if embedding or usable features exist)
+
+data quality issues
+
+uncertainty analysis (if p10/p90 present)
+
+6. Enforce diversity
+
+No two adjacent insights from the same family.
+
+Avoid repeating the same primary column repeatedly.
+
+Each insight must answer a different analytical question.
+
+SPEC-DRIVEN RENDERING (IMPORTANT)
+7. Use a spec, not ad-hoc rendering
+
+If a VizPlan / InsightSpec / ChartSpec already exists:
+
+reuse it
+
+extend it
+
+If not, introduce a minimal InsightSpec that includes:
+
+id
+
+family
+
+title
+
+narrative
+
+why_it_matters
+
+fields_used
+
+transform/query
+
+chart_spec
+
+Rendering logic must consume specs, not contain logic itself.
+
+COMPLEXITY RULE (DO NOT VIOLATE)
+
+Default to micro charts
+
+Only allow complex visuals (networks, flows, parallel coords) if:
+
+the dataset supports them AND
+
+they reveal structure micro charts cannot
+
+If complexity is not justified, downgrade automatically.
+
+ACCEPTANCE CHECKLIST
+
+Before finishing, verify:
+
+No logic caps insights at 3
+
+Insight count scales with dataset complexity
+
+Layout is vertical, not bento/grid
+
+Charts are compact and niche
+
+At least 6 different insight families appear for complex datasets
+
+Uncertainty insights appear when p10/p90 columns exist
+
+Existing features still work
+
+FINAL INSTRUCTION
+
+Do not rebuild the app.
+Do not remove working features.
+Do not add generic dashboards.
+
+Make the system think harder, show more, and explain better.
+
+Proceed now.

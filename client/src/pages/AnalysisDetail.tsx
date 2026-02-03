@@ -6,6 +6,8 @@ import { ChartBuilder } from "@/components/ChartBuilder";
 import { MetricCard } from "@/components/MetricCard";
 import { DatasetSummary } from "@/components/DatasetSummary";
 import { InsightCard, categorizeInsight, groupInsights } from "@/components/InsightCard";
+import { AnalysisReport, type DatasetFingerprint } from "@/components/AnalysisReport";
+import { InsightRenderer } from "@/components/InsightRenderer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -29,8 +31,11 @@ import {
   AlertTriangle,
   Database,
   Search,
+  FileText,
 } from "lucide-react";
 import { VizPanel } from "@/components/viz/VizPanel";
+import { profileDataset } from "@/lib/viz/Profiler";
+import { computeDatasetComplexity, computeInsightBudget, type InsightSpec, type DatasetComplexity } from "../../../shared/insights";
 
 export default function AnalysisDetail() {
   const [, params] = useRoute("/analyses/:id");
@@ -112,18 +117,136 @@ export default function AnalysisDetail() {
     return null;
   }, [sanitizedData]);
 
-  // Process insights with categorization
+  // Process insights with categorization - support both old and new format
   const processedInsights = useMemo(() => {
     if (!analysis?.insights) return null;
 
-    const processed = analysis.insights.map((insight: string | { insight: string }) => {
-      const text = typeof insight === "string" ? insight : insight.insight;
+    const processed = analysis.insights
+      .map((insight: string | { insight?: string; narrative?: string; title?: string }) => {
+        const text = typeof insight === "string" 
+          ? insight 
+          : (insight.insight || insight.narrative || insight.title || "");
+        if (!text) return null;
+        const { category, importance, whyItMatters } = categorizeInsight(text);
+        return { text, category, importance, whyItMatters };
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+
+    return groupInsights(processed as any);
+  }, [analysis?.insights]);
+
+  // Convert insights to InsightSpec format for new report
+  const insightSpecs = useMemo((): InsightSpec[] => {
+    if (!analysis?.insights) return [];
+
+    const specs = analysis.insights.map((insight: any, idx: number) => {
+      // Handle new structured format
+      if (typeof insight === "object" && insight.id) {
+        return insight as InsightSpec;
+      }
+      
+      // Handle old string format or partial format
+      const text = typeof insight === "string" ? insight : (insight.insight || insight.narrative || insight.title || "");
       const { category, importance, whyItMatters } = categorizeInsight(text);
-      return { text, category, importance, whyItMatters };
+      
+      return {
+        id: `insight_${idx + 1}`,
+        family: (insight.family || category) as any,
+        title: insight.title || text.slice(0, 100),
+        narrative: insight.narrative || text,
+        whyItMatters: insight.whyItMatters || whyItMatters,
+        fieldsUsed: insight.fieldsUsed || [],
+        importance: insight.importance || importance,
+        confidence: insight.confidence || "medium",
+        chartSpec: insight.chartSpec
+      } as InsightSpec;
     });
 
-    return groupInsights(processed);
+    // Sort by importance: critical first, high second, then medium, then low
+    const importanceOrder: Record<string, number> = {
+      critical: 0,
+      high: 1,
+      medium: 2,
+      low: 3
+    };
+
+    return specs.sort((a, b) => {
+      const aOrder = importanceOrder[a.importance] ?? 2;
+      const bOrder = importanceOrder[b.importance] ?? 2;
+      return aOrder - bOrder;
+    });
   }, [analysis?.insights]);
+
+  // Compute dataset profile, complexity, and fingerprint with error handling
+  const { datasetProfile, complexity, fingerprint } = useMemo(() => {
+    const defaultFingerprint: DatasetFingerprint = {
+      rowCount: 0,
+      columnCount: 0,
+      numericCount: 0,
+      categoricalCount: 0,
+      datetimeCount: 0,
+      geoCount: 0,
+      idCount: 0,
+      textCount: 0,
+      averageMissingness: 0,
+      highMissingnessColumns: [],
+      constantColumns: [],
+      warnings: []
+    };
+    
+    const defaultComplexity: DatasetComplexity = { 
+      level: "simple" as const, 
+      score: 0, 
+      factors: {
+        rowCount: 0,
+        columnCount: 0,
+        numericColumnCount: 0,
+        categoricalColumnCount: 0,
+        maxCardinality: 0,
+        hasTimeSeries: false,
+        hasGeo: false,
+        correlationCount: 0,
+        missingnessScore: 0
+      }
+    };
+    
+    if (!sanitizedData?.rows || sanitizedData.rows.length === 0) {
+      return { 
+        datasetProfile: null, 
+        complexity: defaultComplexity,
+        fingerprint: defaultFingerprint
+      };
+    }
+
+    try {
+      const profile = profileDataset(sanitizedData.rows);
+      const comp = computeDatasetComplexity(profile);
+      
+      const fp: DatasetFingerprint = {
+        rowCount: profile.rowCount,
+        columnCount: profile.columns.length,
+        numericCount: profile.numericColumns.length,
+        categoricalCount: profile.categoricalColumns.length,
+        datetimeCount: profile.datetimeColumns.length,
+        geoCount: profile.geoColumns.length,
+        idCount: profile.idColumns.length,
+        textCount: profile.columns.filter(c => c.inferredType === "text").length,
+        averageMissingness: profile.columns.reduce((sum, c) => sum + c.missingRate, 0) / (profile.columns.length || 1),
+        highMissingnessColumns: profile.columns.filter(c => c.missingRate > 0.1).map(c => c.name),
+        constantColumns: profile.columns.filter(c => c.uniqueCount === 1).map(c => c.name),
+        warnings: profile.warnings || []
+      };
+
+      return { datasetProfile: profile, complexity: comp, fingerprint: fp };
+    } catch (err) {
+      console.error("Error profiling dataset:", err);
+      return { 
+        datasetProfile: null, 
+        complexity: defaultComplexity,
+        fingerprint: { ...defaultFingerprint, rowCount: sanitizedData.rows.length }
+      };
+    }
+  }, [sanitizedData]);
 
   const handleCustomChart = (config: any) => {
     setCustomCharts((prev) => [...prev, config]);
@@ -208,12 +331,12 @@ export default function AnalysisDetail() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
           <TabsList className="bg-secondary/40 h-10 p-1">
             <TabsTrigger value="overview" className="gap-2 text-[13px] px-4" data-testid="tab-overview">
-              <BarChart3 className="w-4 h-4" />
+              <Lightbulb className="w-4 h-4" />
               Overview
             </TabsTrigger>
-            <TabsTrigger value="insights" className="gap-2 text-[13px] px-4" data-testid="tab-insights">
-              <Lightbulb className="w-4 h-4" />
-              Insights
+            <TabsTrigger value="visualization" className="gap-2 text-[13px] px-4" data-testid="tab-visualization">
+              <BarChart3 className="w-4 h-4" />
+              Visualization
             </TabsTrigger>
             <TabsTrigger value="data" className="gap-2 text-[13px] px-4" data-testid="tab-data">
               <Table2 className="w-4 h-4" />
@@ -225,10 +348,70 @@ export default function AnalysisDetail() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-8 mt-0">
+          {/* Overview tab - now shows Insights */}
+          <TabsContent value="overview" className="mt-0">
+            {insightSpecs.length > 0 ? (
+              <AnalysisReport
+                title={analysis.title.replace("Analysis: ", "")}
+                summary={analysis.summary}
+                insights={insightSpecs}
+                complexity={complexity}
+                fingerprint={fingerprint}
+              />
+            ) : processedInsights ? (
+              <div className="space-y-8 max-w-4xl">
+                {(Object.keys(sectionConfig) as Array<keyof typeof sectionConfig>).map(key => {
+                  const insights = processedInsights[key];
+                  if (!insights || insights.length === 0) return null;
+
+                  const { icon: Icon, label } = sectionConfig[key];
+
+                  return (
+                    <div key={key} className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <div className="p-1.5 rounded-md bg-secondary text-primary">
+                          <Icon className="w-4 h-4" />
+                        </div>
+                        <h3 className="text-sm font-medium text-foreground">{label}</h3>
+                        <span className="text-[11px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground ml-auto">
+                          {insights.length} items
+                        </span>
+                      </div>
+                      <div className="space-y-4">
+                        {insights.map((insight: any, idx: number) => (
+                          <InsightRenderer
+                            key={idx}
+                            insight={{
+                              id: `insight_${idx}`,
+                              family: insight.category as any,
+                              title: insight.text.slice(0, 100),
+                              narrative: insight.text,
+                              whyItMatters: insight.whyItMatters,
+                              fieldsUsed: [],
+                              importance: insight.importance as any,
+                              confidence: "medium" as const
+                            }}
+                            index={idx}
+                            defaultExpanded={idx < 8}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-48 text-muted-foreground text-[14px]">
+                No insights available
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Visualization tab - contains charts and data summary */}
+          <TabsContent value="visualization" className="space-y-8 mt-0">
             {/* Key Insight Metric - Demo Placeholder if real analysis implies success */}
             {analysis.insights && analysis.insights.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-40">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <InsightMetric
                   label="Data Quality Score"
                   value="98%"
@@ -238,7 +421,6 @@ export default function AnalysisDetail() {
                   color="#10b981"
                   className="md:col-span-1"
                 />
-                {/* Placeholder for other potential calculated metrics */}
               </div>
             )}
 
@@ -278,54 +460,6 @@ export default function AnalysisDetail() {
             )}
           </TabsContent>
 
-          <TabsContent value="insights" className="mt-0">
-            {processedInsights ? (
-              <div className="space-y-8 max-w-4xl">
-                {(Object.keys(sectionConfig) as Array<keyof typeof sectionConfig>).map(key => {
-                  const insights = processedInsights[key];
-                  if (!insights || insights.length === 0) return null;
-
-                  const { icon: Icon, label } = sectionConfig[key];
-
-                  return (
-                    <div key={key} className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <div className="p-1.5 rounded-md bg-secondary text-primary">
-                          <Icon className="w-4 h-4" />
-                        </div>
-                        <h3 className="text-sm font-medium text-foreground">{label}</h3>
-                        <span className="text-[11px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground ml-auto">
-                          {insights.length} items
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {insights.map((insight: any, idx: number) => (
-                          <InsightCard
-                            key={idx}
-                            insight={insight.text}
-                            category={insight.category}
-                            importance={insight.importance}
-                            whyItMatters={insight.whyItMatters}
-                            index={idx}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="flex items-center justify-center h-48 text-muted-foreground text-[14px]">
-                No insights available
-              </div>
-            )}
-          </TabsContent>
-
-          import {VizPanel} from "@/components/viz/VizPanel";
-
-          // ... existing imports
-
-          // ... inside AnalysisDetail component
           <TabsContent value="data" className="mt-0 space-y-8">
             {sanitizedData?.rows ? (
               <>

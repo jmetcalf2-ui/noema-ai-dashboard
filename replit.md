@@ -66,6 +66,19 @@ Preferred communication style: Simple, everyday language.
 - **Forms**: React Hook Form with Zod resolver
 - **Date Handling**: date-fns
 
+### Stripe Payment Integration
+- **Stripe SDK**: stripe@20.0.0 with stripe-replit-sync@1.0.0
+- **Webhook handling**: Automatic via stripe-replit-sync managed webhooks
+- **Subscription model**: Pro Plan ($29/month or $290/year)
+- **Free tier limits**: 3 file uploads, 5 analyses per month
+- **Key files**:
+  - `server/stripeClient.ts` - Stripe client with Replit connection API
+  - `server/stripeService.ts` - Stripe API operations and queries
+  - `server/webhookHandlers.ts` - Webhook processing
+  - `client/src/hooks/use-subscription.ts` - Subscription state hooks
+  - `client/src/pages/PricingPage.tsx` - Pricing page with plan selection
+  - `client/src/components/Paywall.tsx` - Paywall component for gating features
+
 ## Recent Changes (February 2026)
 
 ### Professional Design System Overhaul
@@ -153,3 +166,43 @@ Inspired by hal9ai/awesome-dataviz, the following visualization components have 
   - Demonstrates all available chart types and components
   - Interactive examples with sample data
   - Accessible via "Charts" link in sidebar navigation
+
+### Adaptive Insight Generation System (February 2026)
+This major overhaul replaces hardcoded insight limits with a complexity-aware system:
+
+- **InsightSpec Type System** (`shared/insights.ts`):
+  - 8 insight families: distribution, outlier, missingness, correlation, category_driver, time_dynamics, data_quality, uncertainty
+  - Structured insight format with title, narrative, whyItMatters, fieldsUsed, importance, confidence, chartSpec
+  - Dataset complexity scoring (0-10 scale) based on row count, column count, cardinality, time series presence, correlations, missingness
+  - Adaptive insight budget: 5-7 (simple), 8-12 (moderate), 12-20 (complex datasets)
+  - Diversity-aware selection prevents consecutive insights from same family
+
+- **Micro-Visualization Components** (`client/src/components/micro-viz/`):
+  - `MicroSparkline` - Compact trend lines (120px height)
+  - `MiniHistogram` - Distribution with mean/median markers (140px height)
+  - `RankedBarMicro` - Horizontal top-N bars (140px height)
+  - `OutlierDotStrip` - Dot strip with normal range shading (120px height)
+  - `MissingnessStrip` - Stacked bars for missing data visualization (120px height)
+  - `ScatterMini` - Compact scatter with trendline (140px height)
+  - `UncertaintyBand` - Confidence interval bands (120px height)
+  - `CorrelationCell` - Correlation coefficient display (80px height)
+
+- **InsightRenderer Component** (`InsightRenderer.tsx`):
+  - Renders insights with paired micro-charts based on InsightSpec
+  - Expandable cards with progressive disclosure
+  - Family-based color coding and icons
+  - CollapsedInsight component for compact view
+
+- **AnalysisReport Component** (`AnalysisReport.tsx`):
+  - Scrollable report layout (not bento/grid boxes)
+  - Dataset fingerprint section (row/column counts, type breakdown, missingness)
+  - Sticky table of contents with scroll spy
+  - Jump links to insight categories
+  - Progressive disclosure (first 8 expanded, rest collapsed)
+  - Backwards compatible with old string-based insights
+
+- **Server Integration** (`server/routes.ts`):
+  - Computes dataset complexity on upload
+  - Calculates adaptive insight budget based on complexity
+  - Requests structured insights from AI across multiple families
+  - Supports both old string format and new InsightSpec format

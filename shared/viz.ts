@@ -7,7 +7,7 @@ export type SemanticType =
 export interface ColumnProfile {
     name: string;
     inferredType: ColumnType;
-    semanticType?: SemanticType; // New: deeper cognitive inference
+    semanticType?: SemanticType;
     missingRate: number;
     uniqueCount: number;
     examples: string[];
@@ -103,7 +103,7 @@ export interface ViewSpec {
         errorBars?: { field: string; type: "std" | "stderr" | "ci95" };
         topK?: number;
         facetBy?: string;
-        semanticColor?: boolean; // Use semantic palette (e.g. diverging for positive/negative)
+        semanticColor?: boolean;
     };
     annotations?: Array<{ type: "text" | "line" | "range"; value: any; note: string }>;
 }

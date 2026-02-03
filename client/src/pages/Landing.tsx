@@ -68,7 +68,7 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto px-8 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-8">
             <a href="/" className="text-[20px] font-semibold tracking-tight text-foreground hover:opacity-80 transition-opacity">
-              Noema
+              Noema Research
             </a>
             <nav className="hidden md:flex items-center gap-6">
               <a 
@@ -225,7 +225,7 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <span className="text-[16px] font-semibold text-foreground">Noema</span>
+              <span className="text-[16px] font-semibold text-foreground">Noema Research</span>
               <span className="text-muted-foreground">·</span>
               <span className="text-[14px] text-muted-foreground">AI-powered data analysis</span>
             </div>

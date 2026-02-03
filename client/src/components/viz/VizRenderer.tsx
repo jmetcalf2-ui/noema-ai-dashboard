@@ -21,10 +21,9 @@ import type { VizPlan, ViewSpec, Transform } from "../../../../shared/viz";
 
 interface VizRendererProps {
     plan: VizPlan;
-    data: Record<string, any>[]; // The raw data matching plan.datasets[0] source
+    data: Record<string, any>[];
 }
 
-// Simple transform runner (subset)
 function runTransforms(rows: any[], transforms: Transform[]): any[] {
     let result = [...rows];
 
@@ -32,7 +31,6 @@ function runTransforms(rows: any[], transforms: Transform[]): any[] {
         if (t.type === "limit") {
             result = result.slice(0, t.n);
         }
-        // Implement sort, filter, etc. as needed for MVP
         if (t.type === "sort") {
             result.sort((a, b) => {
                 const valA = a[t.by];
@@ -43,16 +41,12 @@ function runTransforms(rows: any[], transforms: Transform[]): any[] {
             })
         }
         if (t.type === "filter") {
-            // Very basic filter support for now
-            // e.g. "x > 0"
-            // In real app use a parser
         }
     }
     return result;
 }
 
 export function VizRenderer({ plan, data }: VizRendererProps) {
-    // 1. Prepare datasets
     const processedData = React.useMemo(() => {
         const datasetMap: Record<string, any[]> = {};
         for (const ds of plan.datasets) {
@@ -104,7 +98,6 @@ function ViewComponent({ view, data }: { view: ViewSpec; data: any[] }) {
         );
     }
 
-    // Common Charts
     if (kind === "bar") {
         return (
             <ResponsiveContainer width="100%" height="100%">
@@ -135,7 +128,7 @@ function ViewComponent({ view, data }: { view: ViewSpec; data: any[] }) {
                     {options?.confidenceBand && (
                         <Area
                             type="monotone"
-                            dataKey={(d) => [d[options.confidenceBand!.lower], d[options.confidenceBand!.upper]]}
+                            dataKey={(d: any) => [d[options.confidenceBand!.lower], d[options.confidenceBand!.upper]]}
                             stroke="none"
                             fill="hsl(var(--primary))"
                             fillOpacity={options.confidenceBand.opacity || 0.15}
@@ -156,8 +149,6 @@ function ViewComponent({ view, data }: { view: ViewSpec; data: any[] }) {
     }
 
     if (kind === "histogram") {
-        // Recharts doesn't have native histogram, simulate with Bar for now or just render Bar
-        // In a real implementation we would bin the data in `runTransforms`
         return (
             <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data}>
