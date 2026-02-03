@@ -2,7 +2,7 @@ import { useAnalysis } from "@/hooks/use-analyses";
 import { useRoute, Link } from "wouter";
 import { ChartRenderer } from "@/components/ChartRenderer";
 import { DataChat } from "@/components/DataChat";
-import { ChartBuilder } from "@/components/ChartBuilder";
+import { AdvancedViewsGrid } from "@/components/AdvancedViewsGrid";
 import { MetricCard } from "@/components/MetricCard";
 import { DatasetSummary } from "@/components/DatasetSummary";
 import { InsightCard, categorizeInsight, groupInsights } from "@/components/InsightCard";
@@ -123,8 +123,8 @@ export default function AnalysisDetail() {
 
     const processed = analysis.insights
       .map((insight: string | { insight?: string; narrative?: string; title?: string }) => {
-        const text = typeof insight === "string" 
-          ? insight 
+        const text = typeof insight === "string"
+          ? insight
           : (insight.insight || insight.narrative || insight.title || "");
         if (!text) return null;
         const { category, importance, whyItMatters } = categorizeInsight(text);
@@ -144,11 +144,11 @@ export default function AnalysisDetail() {
       if (typeof insight === "object" && insight.id) {
         return insight as InsightSpec;
       }
-      
+
       // Handle old string format or partial format
       const text = typeof insight === "string" ? insight : (insight.insight || insight.narrative || insight.title || "");
       const { category, importance, whyItMatters } = categorizeInsight(text);
-      
+
       return {
         id: `insight_${idx + 1}`,
         family: (insight.family || category) as any,
@@ -193,10 +193,10 @@ export default function AnalysisDetail() {
       constantColumns: [],
       warnings: []
     };
-    
-    const defaultComplexity: DatasetComplexity = { 
-      level: "simple" as const, 
-      score: 0, 
+
+    const defaultComplexity: DatasetComplexity = {
+      level: "simple" as const,
+      score: 0,
       factors: {
         rowCount: 0,
         columnCount: 0,
@@ -209,10 +209,10 @@ export default function AnalysisDetail() {
         missingnessScore: 0
       }
     };
-    
+
     if (!sanitizedData?.rows || sanitizedData.rows.length === 0) {
-      return { 
-        datasetProfile: null, 
+      return {
+        datasetProfile: null,
         complexity: defaultComplexity,
         fingerprint: defaultFingerprint
       };
@@ -221,7 +221,7 @@ export default function AnalysisDetail() {
     try {
       const profile = profileDataset(sanitizedData.rows);
       const comp = computeDatasetComplexity(profile);
-      
+
       const fp: DatasetFingerprint = {
         rowCount: profile.rowCount,
         columnCount: profile.columns.length,
@@ -240,8 +240,8 @@ export default function AnalysisDetail() {
       return { datasetProfile: profile, complexity: comp, fingerprint: fp };
     } catch (err) {
       console.error("Error profiling dataset:", err);
-      return { 
-        datasetProfile: null, 
+      return {
+        datasetProfile: null,
         complexity: defaultComplexity,
         fingerprint: { ...defaultFingerprint, rowCount: sanitizedData.rows.length }
       };
@@ -407,9 +407,9 @@ export default function AnalysisDetail() {
             )}
           </TabsContent>
 
-          {/* Visualization tab - contains charts and data summary */}
+          {/* Visualization tab - REDESIGNED for clarity and focus */}
           <TabsContent value="visualization" className="space-y-8 mt-0">
-            {/* Key Insight Metric - Demo Placeholder if real analysis implies success */}
+            {/* Data Quality Score - Useful metric */}
             {analysis.insights && analysis.insights.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <InsightMetric
@@ -424,15 +424,30 @@ export default function AnalysisDetail() {
               </div>
             )}
 
+            {/* Dataset Overview - Provides context */}
             {sanitizedData && (
               <DatasetSummary headers={sanitizedData.headers} rows={sanitizedData.rows} />
             )}
 
-            {/* Render Zoomable Chart if time series detected */}
+            {/* ADVANCED ANALYTICS VIEWS - PROMOTED TO TOP */}
+            {sanitizedData?.rows && sanitizedData.rows.length > 0 && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold">Advanced Analytics Views</h3>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  AI-generated insights using statistical analysis and visual intelligence
+                </p>
+                <AdvancedViewsGrid data={sanitizedData.rows} />
+              </div>
+            )}
+
+            {/* Time Series Trend Analysis - Keep if applicable */}
             {timeSeriesData && (
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <Search className="w-4 h-4 text-primary" />
+                  <TrendingUp className="w-4 h-4 text-primary" />
                   <h3 className="text-sm font-medium">Trend Analysis ({timeSeriesData.valueKey} over Time)</h3>
                 </div>
                 <ZoomableLineChart
@@ -444,19 +459,6 @@ export default function AnalysisDetail() {
                   height={350}
                 />
               </div>
-            )}
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {analysis.charts?.map((chartConfig: any, idx: number) => (
-                <ChartRenderer key={`original-${idx}`} config={chartConfig} />
-              ))}
-              {customCharts.map((chartConfig, idx) => (
-                <ChartRenderer key={`custom-${idx}`} config={chartConfig} />
-              ))}
-            </div>
-
-            {sanitizedData?.rows && sanitizedData.rows.length > 0 && (
-              <ChartBuilder data={sanitizedData.rows} onChartCreate={handleCustomChart} />
             )}
           </TabsContent>
 
